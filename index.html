@@ -4,401 +4,468 @@
   <meta charset="utf-8" />
   <title>SHEQ Heat Map – Sheffield Supertram</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Leaflet (no API key required) -->
+
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <!-- Leaflet Heat plugin -->
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
   <style>
     :root {
-      --brand-900: #0b2d47; /* header background */
-      --brand-500: #1977a5; /* buttons */
-      --bg: #f7f9fc;        /* page background */
-      --text-900: #0f172a;  /* main text */
-      --text-700: #334155;  /* secondary text */
-      --border: #d0d7de;    /* light border */
+      --brand-900: #0b2d47;
+      --brand-500: #1977a5;
+      --bg: #f7f9fc;
+      --text-900: #0f172a;
+      --text-700: #334155;
+      --border: #d0d7de;
     }
 
     html, body { height: 100%; margin: 0; }
-    body { background: var(--bg); color: var(--text-900); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text-900);
+           font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
-    /* Compact professional header */
-    .app-header { display:flex; align-items:center; gap:10px; padding: 8px 16px; background: var(--brand-900); color:#fff; border-bottom: 1px solid rgba(255,255,255,0.12); }
-    .app-header .logo { height: 22px; width:auto; object-fit: contain; }
-    .app-header .titles { display:flex; flex-direction:column; line-height:1.15; }
-    .app-header .titles .h1 { margin:0; font-size: 0.95rem; font-weight: 800; letter-spacing: .15px; }
-    .app-header .titles .sub { margin:0; font-size: .78rem; opacity: .9; }
+    /* Header */
+    .app-header { display:flex; align-items:center; gap:10px; padding: 8px 16px;
+      background: var(--brand-900); color:#fff; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .app-header .logo { height: 22px; object-fit: contain; }
+    .titles { display:flex; flex-direction:column; line-height:1.15; }
+    .titles .h1 { margin:0; font-size: 0.95rem; font-weight: 800; }
+    .titles .sub { margin:0; font-size: .78rem; opacity: .9; }
 
-    /* Page container */
+    /* Layout */
     .container { max-width: 1200px; margin: 0 auto; }
 
     /* KPI bar */
-    .kpi-bar { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap:10px; padding: 10px 16px; background: #fff; border-bottom:1px solid var(--border); }
-    .kpi { background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
-    .kpi .label { color: var(--text-700); font-size: .78rem; }
-    .kpi .value { font-size: 1.1rem; font-weight: 800; }
+    .kpi-bar { display:grid; grid-template-columns: repeat(4, minmax(160px,1fr)); gap:10px;
+      padding: 10px 16px; background:#fff; border-bottom:1px solid var(--border);}
+    .kpi { background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px 12px;}
+    .label { color: var(--text-700); font-size: .78rem; }
+    .value { font-size: 1.1rem; font-weight: 800; }
 
     /* Controls */
-    #controls { padding: 12px 16px; background:#fff; border-bottom:1px solid var(--border); display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-    label { font-weight: 700; font-size: .85rem; color: var(--text-700); }
-    .control-group { display:flex; flex-direction:column; gap:6px; }
-    input[type="text"], input[type="date"], select { height: 34px; padding: 6px 10px; border:1px solid var(--border); border-radius: 6px; background:#fff; }
+    #controls { padding: 12px 16px; background:#fff; border-bottom:1px solid var(--border);
+      display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr));}
 
-    .btn-row { display:flex; align-items:center; gap:10px; flex-wrap: wrap; }
-    .btn { height: 34px; border-radius: 6px; border:1px solid var(--brand-500); background: var(--brand-500); color:#fff; padding: 0 12px; cursor:pointer; font-weight:700; }
-    .btn.secondary { border-color: var(--border); background:#fff; color: var(--text-900); }
-    .btn:focus { outline: 3px solid rgba(25,119,165,.25); outline-offset:2px; }
+    label { font-weight:700; font-size:.85rem; color:var(--text-700);}
+    input[type="text"], input[type="date"], select {
+      height: 34px; padding: 6px 10px; border:1px solid var(--border);
+      border-radius:6px; background:#fff;
+    }
 
-    /* Map & footer */
-    #map { width: 100%; }
-    .notice { margin: 0; padding: 8px 16px; background:#fff3cd; border-top: 1px solid #ffeeba; border-bottom: 1px solid #ffeeba; color:#856404; font-size:0.85rem; display:none; }
-    footer { padding: 10px 16px; border-top:1px solid var(--border); color: var(--text-700); font-size: .82rem; background:#fff; }
+    .btn-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn { height:34px; border-radius:6px; border:1px solid var(--brand-500);
+      background:var(--brand-500); color:#fff; padding:0 12px; cursor:pointer;
+      font-weight:700; }
+    .btn.secondary { border-color:var(--border); background:#fff; color:var(--text-900); }
 
-    @media (max-width: 640px){ .kpi-bar { grid-template-columns: repeat(2, 1fr); } }
+    /* Map */
+    #map { width:100%; }
+
+    .notice { margin:0; padding:8px 16px; background:#fff3cd;
+      border-top:1px solid #ffeeba; border-bottom:1px solid #ffeeba;
+      color:#856404; font-size:0.85rem; display:none; }
+
+    footer { padding:10px 16px; border-top:1px solid var(--border);
+      color:var(--text-700); font-size:.82rem; background:#fff; }
+
+    @media(max-width:640px){
+      .kpi-bar { grid-template-columns: repeat(2,1fr); }
+    }
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <div class="app-header">
-    <div class="container" style="display:flex;align-items:center;gap:10px;">
-      <img src="./STLogo.jpg" alt="Supertram logo" class="logo" onerror="this.src='./logo.png'" />
-      <div class="titles">
-        <div class="h1">SHEQ Heat Map</div>
-        <div class="sub">Sheffield Supertram – Safety, Health, Environment & Quality</div>
-      </div>
+
+<!-- Header -->
+<div class="app-header">
+  <div class="container" style="display:flex;align-items:center;gap:10px;">
+    <img src="./STLogo.jpg" class="logo" onerror="this.src='./logo.png'" />
+    <div class="titles">
+      <div class="h1">SHEQ Heat Map</div>
+      <div class="sub">Sheffield Supertram – Safety, Health, Environment & Quality</div>
+    </div>
+  </div>
+</div>
+
+<!-- KPIs -->
+<section class="kpi-bar container">
+  <div class="kpi"><div class="label">Incidents (loaded)</div><div class="value" id="kpiLoaded">0</div></div>
+  <div class="kpi"><div class="label">Incidents (filtered)</div><div class="value" id="kpiFiltered">0</div></div>
+  <div class="kpi"><div class="label">RIDDOR (Yes)</div><div class="value" id="kpiRiddorYes">0</div></div>
+  <div class="kpi"><div class="label">Locations (unique)</div><div class="value" id="kpiLocations">0</div></div>
+</section>
+
+<!-- Controls -->
+<div id="controls" class="container">
+
+  <div class="control-group">
+    <label for="startDate">Start Date</label>
+    <input type="date" id="startDate" />
+  </div>
+
+  <div class="control-group">
+    <label for="endDate">End Date</label>
+    <input type="date" id="endDate" />
+  </div>
+
+  <div class="control-group">
+    <label for="incidentType">Incident Type</label>
+    <select id="incidentType">
+      <option value="">(All)</option>
+
+      <!-- --- YOUR FULL INCIDENT LIST UNCHANGED --- -->
+      <option value="Brake">Brake</option>
+      <option value="Anti - social behaviour">Anti - social behaviour</option>
+      <option value="Control">Control</option>
+      <option value="Cyclist Fall">Cyclist Fall</option>
+      <option value="Derailment">Derailment</option>
+      <option value="Derailment -Multi-Car">Derailment -Multi-Car</option>
+      <option value="Door Open in Traffic">Door Open in Traffic</option>
+      <option value="Door Trap">Door Trap</option>
+      <option value="Doors">Doors</option>
+      <option value="Electricity Fire/Smoke">Electricity Fire/Smoke</option>
+      <option value="Fire">Fire</option>
+      <option value="Physical Assault">Physical Assault</option>
+      <option value="Incorrect VIS">Incorrect VIS</option>
+      <option value="Communication">Communication</option>
+      <option value="Non-Tram RTC">Non-Tram RTC</option>
+      <option value="Low Adhesion">Low Adhesion</option>
+      <option value="Points">Points</option>
+      <option value="Mobility">Mobility</option>
+      <option value="Near Miss - Red Light">Near Miss - Red Light</option>
+      <option value="Near Miss">Near Miss</option>
+      <option value="OHLE">OHLE</option>
+      <option value="Other Accident">Other Accident</option>
+      <option value="Other">Other</option>
+      <option value="Pantagraph">Pantagraph</option>
+      <option value="Person in Cab">Person in Cab</option>
+      <option value=" Minor - PTC"> Minor - PTC</option>
+      <option value=" Major - PTC"> Major - PTC</option>
+      <option value="Radio & Communications Systems">Radio & Communications Systems</option>
+      <option value="Minor - RTC">Minor - RTC</option>
+      <option value="Major - RTC">Major - RTC</option>
+      <option value="Sanders">Sanders</option>
+      <option value="SCADA">SCADA</option>
+      <option value="Seperation">Seperation</option>
+      <option value="Signal Passed against Bar (SPAS)">Signal Passed against Bar (SPAS)</option>
+      <option value="Signals">Signals</option>
+      <option value="Slip/Slide">Slip/Slide</option>
+      <option value="Speedometer">Speedometer</option>
+      <option value="STF on Tram">STF on Tram</option>
+      <option value="STF other">STF other</option>
+      <option value="Info Only">Info Only</option>
+      <option value="Sun Blind">Sun Blind</option>
+      <option value="Surfing">Surfing</option>
+      <option value="Taxis">Taxis</option>
+      <option value="Threatening Behaviour">Threatening Behaviour</option>
+      <option value="Tracks">Tracks</option>
+      <option value="Tram Fire">Tram Fire</option>
+      <option value="Tramstop Overrun">Tramstop Overrun</option>
+      <option value="Vandalism">Vandalism</option>
+      <option value="Vehicle Structure (including under tram)">Vehicle Structure (including under tram)</option>
+      <option value="Verbal Abuse">Verbal Abuse</option>
+      <option value="VIS">VIS</option>
+      <option value="Windows">Windows</option>
+      <option value="Wrong routing">Wrong routing</option>
+      <option value="Tram on Tram Collision">Tram on Tram Collision</option>
+      <option value="Car on Ballast/Tracks">Car on Ballast/Tracks</option>
+      <option value="Speeding">Speeding</option>
+      <option value="Passenger">Passenger</option>
+      <option value="Pasenger assault">Pasenger assault</option>
+      <option value="Passenger on Passenger Assault">Passenger on Passenger Assault</option>
+      <option value="Dog">Dog</option>
+      <option value="Tresspass">Tresspass</option>
+      <option value="Infrastructure/ Equipment failure">Infrastructure/ Equipment failure</option>
+    </select>
+  </div>
+
+  <div class="control-group">
+    <label for="location">Location</label>
+    <input type="text" id="location" placeholder="Stop/Junction name" />
+  </div>
+
+  <div class="control-group">
+    <label for="direction">Direction of Travel</label>
+    <select id="direction">
+      <option value="">(All)</option>
+      <option value="Inbound">Inbound</option>
+      <option value="Outbound">Outbound</option>
+      <option value="Wrong Direction">Wrong Direction</option>
+    </select>
+  </div>
+
+  <div class="control-group">
+    <label for="riddor">RIDDOR/SMIS</label>
+    <select id="riddor">
+      <option value="">(All)</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+  <!-- Heat Options -->
+  <div class="control-group">
+    <label>Heat Options</label>
+    <div class="btn-row">
+      <span style="font-weight:700;color:var(--text-700)">Radius</span>
+      <input type="range" id="radius" min="5" max="50" value="25">
+      <span style="font-weight:700;color:var(--text-700)">Intensity</span>
+      <input type="range" id="intensity" min="0.1" max="2" step="0.1" value="1.0">
+      <span style="font-weight:700;color:var(--text-700)">Opacity</span>
+      <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="0.7">
     </div>
   </div>
 
-  <!-- KPIs -->
-  <section class="kpi-bar container" aria-label="Summary">
-    <div class="kpi"><div class="label">Incidents (loaded)</div><div class="value" id="kpiLoaded">0</div></div>
-    <div class="kpi"><div class="label">Incidents (filtered)</div><div class="value" id="kpiFiltered">0</div></div>
-    <div class="kpi"><div class="label">RIDDOR (Yes)</div><div class="value" id="kpiRiddorYes">0</div></div>
-    <div class="kpi"><div class="label">Locations (unique)</div><div class="value" id="kpiLocations">0</div></div>
-  </section>
-
-  <!-- Controls -->
-  <div id="controls" class="container">
-    <div class="control-group">
-      <label for="startDate">Start Date</label>
-      <input type="date" id="startDate" />
-    </div>
-    <div class="control-group">
-      <label for="endDate">End Date</label>
-      <input type="date" id="endDate" />
-    </div>
-
-    <div class="control-group">
-      <label for="incidentType">Incident Type</label>
-      <select id="incidentType">
-        <option value="">(All)</option>
-        <option value="Brake">Brake</option>
-        <option value="Anti - social behaviour">Anti - social behaviour</option>
-        <option value="Control">Control</option>
-        <option value="Cyclist Fall">Cyclist Fall</option>
-        <option value="Derailment">Derailment</option>
-        <option value="Derailment -Multi-Car">Derailment -Multi-Car</option>
-        <option value="Door Open in Traffic">Door Open in Traffic</option>
-        <option value="Door Trap">Door Trap</option>
-        <option value="Doors">Doors</option>
-        <option value="Electricity Fire/Smoke">Electricity Fire/Smoke</option>
-        <option value="Fire">Fire</option>
-        <option value="Physical Assault">Physical Assault</option>
-        <option value="Incorrect VIS">Incorrect VIS</option>
-        <option value="Communication">Communication</option>
-        <option value="Non-Tram RTC">Non-Tram RTC</option>
-        <option value="Low Adhesion">Low Adhesion</option>
-        <option value="Points">Points</option>
-        <option value="Mobility">Mobility</option>
-        <option value="Near Miss - Red Light">Near Miss - Red Light</option>
-        <option value="Near Miss">Near Miss</option>
-        <option value="OHLE">OHLE</option>
-        <option value="Other Accident">Other Accident</option>
-        <option value="Other">Other</option>
-        <option value="Pantagraph">Pantagraph</option>
-        <option value="Person in Cab">Person in Cab</option>
-        <option value=" Minor - PTC"> Minor - PTC</option>
-        <option value=" Major - PTC"> Major - PTC</option>
-        <option value="Radio & Communications Systems">Radio & Communications Systems</option>
-        <option value="Minor - RTC">Minor - RTC</option>
-        <option value="Major - RTC">Major - RTC</option>
-        <option value="Sanders">Sanders</option>
-        <option value="SCADA">SCADA</option>
-        <option value="Seperation">Seperation</option>
-        <option value="Signal Passed against Bar (SPAS)">Signal Passed against Bar (SPAS)</option>
-        <option value="Signals">Signals</option>
-        <option value="Slip/Slide">Slip/Slide</option>
-        <option value="Speedometer">Speedometer</option>
-        <option value="STF on Tram">STF on Tram</option>
-        <option value="STF other">STF other</option>
-        <option value="Info Only">Info Only</option>
-        <option value="Sun Blind">Sun Blind</option>
-        <option value="Surfing">Surfing</option>
-        <option value="Taxis">Taxis</option>
-        <option value="Threatening Behaviour">Threatening Behaviour</option>
-        <option value="Tracks">Tracks</option>
-        <option value="Tram Fire">Tram Fire</option>
-        <option value="Tramstop Overrun">Tramstop Overrun</option>
-        <option value="Vandalism">Vandalism</option>
-        <option value="Vehicle Structure (including under tram)">Vehicle Structure (including under tram)</option>
-        <option value="Verbal Abuse">Verbal Abuse</option>
-        <option value="VIS">VIS</option>
-        <option value="Windows">Windows</option>
-        <option value="Wrong routing">Wrong routing</option>
-        <option value="Tram on Tram Collision">Tram on Tram Collision</option>
-        <option value="Car on Ballast/Tracks">Car on Ballast/Tracks</option>
-        <option value="Speeding">Speeding</option>
-        <option value="Passenger">Passenger</option>
-        <option value="Pasenger assault">Pasenger assault</option>
-        <option value="Passenger on Passenger Assault">Passenger on Passenger Assault</option>
-        <option value="Dog">Dog</option>
-        <option value="Tresspass">Tresspass</option>
-        <option value="Infrastructure/ Equipment failure">Infrastructure/ Equipment failure</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label for="location">Location</label>
-      <input type="text" id="location" placeholder="Stop/Junction name" />
-    </div>
-
-    <div class="control-group">
-      <label for="direction">Direction of Travel</label>
-      <select id="direction">
-        <option value="">(All)</option>
-        <option value="Inbound">Inbound</option>
-        <option value="Outbound">Outbound</option>
-        <option value="Wrong Direction">Wrong Direction</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label for="riddor">RIDDOR/SMIS</label>
-      <select id="riddor">
-        <option value="">(All)</option>
-        <option value="Yes">Yes</option>
-        <option value="No">No</option>
-      </select>
-    </div>
-
-    <div class="control-group">
-      <label>Heat Options</label>
-      <div class="btn-row">
-        <span style="font-weight:700;color:var(--text-700)">Radius</span>
-        <input type="range" id="radius" min="5" max="50" value="25" />
-        <span style="font-weight:700;color:var(--text-700)">Intensity</span>
-        <input type="range" id="intensity" min="0.1" max="2" step="0.1" value="1.0" />
-        <span style="font-weight:700;color:var(--text-700)">Opacity</span>
-        <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="0.7" />
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label>&nbsp;</label>
-      <div class="btn-row">
-        <button id="resetBtn" class="btn secondary">Reset Filters</button>
-        <button id="fitBtn" class="btn">Fit to Data</button>
-      </div>
+  <div class="control-group">
+    <label>&nbsp;</label>
+    <div class="btn-row">
+      <button id="resetBtn" class="btn secondary">Reset Filters</button>
+      <button id="fitBtn" class="btn">Fit to Data</button>
     </div>
   </div>
 
-  <p class="notice container" id="notice"></p>
-  <div id="map" class="container" role="region" aria-label="Incident heat map"></div>
+</div>
 
-  <footer role="contentinfo" class="container">
-    <span>© Sheffield Supertram</span>
-    <span style="margin:0 8px;color:#cbd5e1">•</span>
-    <span id="refreshedAt">Data refreshed: —</span>
-  </footer>
+<p class="notice container" id="notice"></p>
 
-  <script>
-    const GEOJSON_URL = './incidents.geojson';
+<!-- Map -->
+<div id="map" class="container"></div>
 
-    let map, heatLayer, allPoints = [];
-    const heatDefaults = { radius: 25, blur: 20, maxZoom: 17, max: 1.0 };
+<footer class="container">
+  <span>© Sheffield Supertram</span>
+  <span style="margin:0 8px;color:#cbd5e1">•</span>
+  <span id="refreshedAt">Data refreshed: —</span>
+</footer>
 
-    // Ensure the map has a healthy height during all layout states
-    function resizeMap(){
-      const headerH   = document.querySelector('.app-header')?.offsetHeight || 0;
-      const kpiH      = document.querySelector('.kpi-bar')?.offsetHeight || 0;
-      const controlsH = document.getElementById('controls')?.offsetHeight || 0;
-      const noticeH   = document.getElementById('notice')?.offsetHeight || 0;
-      const footerH   = document.querySelector('footer')?.offsetHeight || 0;
-      const total = headerH + kpiH + controlsH + noticeH + footerH;
-      const h = Math.max(420, window.innerHeight - total - 8); // min 420px
-      const mapEl = document.getElementById('map');
-      mapEl.style.height = h + 'px';
-      if (map) { setTimeout(() => map.invalidateSize(), 50); }
+<script>
+const GEOJSON_URL = './incidents.geojson';
+
+let map, heatLayer, allPoints = [];
+const heatDefaults = { radius: 25, blur: 20, maxZoom: 17, max: 1.0 };
+
+/* Ensure map height respects header, kpi, controls, footer */
+function resizeMap(){
+  const headerH   = document.querySelector('.app-header')?.offsetHeight || 0;
+  const kpiH      = document.querySelector('.kpi-bar')?.offsetHeight || 0;
+  const controlsH = document.getElementById('controls')?.offsetHeight || 0;
+  const noticeH   = document.getElementById('notice')?.offsetHeight || 0;
+  const footerH   = document.querySelector('footer')?.offsetHeight || 0;
+
+  const h = Math.max(420, window.innerHeight - (headerH + kpiH + controlsH + noticeH + footerH) - 8);
+
+  const mapEl = document.getElementById('map');
+  mapEl.style.height = h + 'px';
+
+  if (map) setTimeout(() => map.invalidateSize(), 50);
+}
+
+async function init(){
+  await initMap();
+  await loadIncidents();
+  console.log("Loaded", allPoints.length, "points");
+
+  requestAnimationFrame(() => buildHeatLayerChunked(allPoints));
+
+  attachUI();
+  updateKpis(allPoints, allPoints);
+  document.getElementById('refreshedAt').textContent =
+    'Data refreshed: ' + new Date().toLocaleString();
+
+  resizeMap();
+  window.addEventListener('resize', resizeMap);
+}
+
+async function initMap(){
+  map = L.map('map');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  map.setView([53.382, -1.463], 12);
+}
+
+async function loadIncidents(){
+  try {
+    const res = await fetch(GEOJSON_URL + '?v=' + Date.now(), { cache:'no-store' });
+    if (!res.ok) throw new Error("GeoJSON fetch failed");
+
+    const geojson = await res.json();
+
+    allPoints = (geojson.features || [])
+      .filter(f => f.geometry && f.geometry.type === 'Point')
+      .map(f => {
+        const [lon, lat] = f.geometry.coordinates || [null,null];
+        if (lon === null || lat === null) return null;
+
+        const props = f.properties || {};
+        const riddorYes = String(props.RIDDOR_SMIS || "").trim() === "Yes";
+        const weight = riddorYes ? 1.5 : 0.6;
+
+        return { lat, lon, weight, props };
+      })
+      .filter(Boolean);
+
+    if (!allPoints.length){
+      showNotice("No valid points in incidents.geojson.");
     }
 
-    async function init(){
-      await initMap();
-      await loadIncidents();
-      console.log('Loaded', allPoints.length, 'points');
+  } catch(err){
+    showNotice("Could not load incidents.geojson.");
+    console.error(err);
+  }
+}
 
-      // Let tiles render first; then incrementally build heat to avoid blocking
-      requestAnimationFrame(() => {
-        buildHeatLayerChunked(allPoints);
-      });
+/* Chunked loading */
+function buildHeatLayerChunked(points){
+  if (heatLayer){ map.removeLayer(heatLayer); heatLayer = null; }
 
-      attachUI();
-      updateKpis(allPoints, allPoints);
-      document.getElementById('refreshedAt').textContent =
-        'Data refreshed: ' + new Date().toLocaleString();
+  heatLayer = L.heatLayer([], {
+    radius: Number(radius.value) || heatDefaults.radius,
+    blur: heatDefaults.blur,
+    maxZoom: heatDefaults.maxZoom,
+    max: Number(intensity.value) || heatDefaults.max
+  }).addTo(map);
 
-      resizeMap();
-      window.addEventListener('resize', resizeMap);
+  heatLayer.setOptions({ opacity: Number(opacity.value) || 0.7 });
+
+  const chunkSize = 1000;
+  let idx = 0;
+  let buffer = [];
+
+  function addChunk(){
+    const slice = points.slice(idx, idx + chunkSize);
+    for (const p of slice) buffer.push([p.lat, p.lon, p.weight]);
+
+    heatLayer.setLatLngs(buffer);
+
+    idx += chunkSize;
+    if (idx < points.length){
+      (window.requestIdleCallback || window.setTimeout)(addChunk, 0);
+    }
+  }
+  addChunk();
+}
+
+/* Update Incident Type dropdown to grey-out impossible choices */
+function updateIncidentTypeDropdown(possibleTypes){
+  const select = document.getElementById("incidentType");
+  const options = select.querySelectorAll("option");
+
+  options.forEach(opt => {
+    const val = opt.value.trim().toLowerCase();
+
+    if (val === ""){
+      opt.disabled = false;
+      opt.style.color = "";
+      return;
     }
 
-    async function initMap(){
-      map = L.map('map');
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
-      map.setView([53.382, -1.463], 12);
+    if (!possibleTypes.has(val)){
+      opt.disabled = true;
+      opt.style.color = "#999";
+    } else {
+      opt.disabled = false;
+      opt.style.color = "";
+    }
+  });
+}
+
+/* Filtering logic */
+function filterPoints(){
+  const startDate   = startDateInput.value ? new Date(startDateInput.value) : null;
+  const endDate     = endDateInput.value ? new Date(endDateInput.value) : null;
+  const selectedType = incidentType.value.trim().toLowerCase();
+  const locationStr = locationInput.value.trim().toLowerCase();
+  const directionVal = directionInput.value;
+  const riddorVal    = riddorInput.value;
+
+  const possibleTypes = new Set();
+
+  const preliminary = allPoints.filter(p => {
+    const props = p.props || {};
+    let dateOk = true;
+
+    if (props.DateTime){
+      const d = new Date(props.DateTime);
+      if (startDate && d < startDate) return false;
+      if (endDate && d > endDate) return false;
     }
 
-    async function loadIncidents(){
-      try {
-        // Cache-buster to force refresh while testing
-        const res = await fetch(GEOJSON_URL + '?v=' + Date.now(), { cache: 'no-store' });
-        if(!res.ok) throw new Error('GeoJSON fetch failed: '+res.status);
-        const geojson = await res.json();
+    if (locationStr && !String(props.Location||"").toLowerCase().includes(locationStr))
+      return false;
 
-        // Map features -> points, dropping null coords and applying RIDDOR weighting
-        allPoints = (geojson.features || [])
-          .filter(f => f.geometry && f.geometry.type === 'Point' && Array.isArray(f.geometry.coordinates))
-          .map(f => {
-            const [lon, lat] = f.geometry.coordinates || [null,null];
-            if (lon === null || lat === null) return null;    // DROP null rows
-            const props = f.properties || {};
-            const riddorYes = String(props.RIDDOR_SMIS || '').trim() === 'Yes';
-            const weight = riddorYes ? 1.5 : 0.6;             // RIDDOR weighting
-            return { lat, lon, weight, props };
-          })
-          .filter(Boolean);
+    if (directionVal && String(props.Direction||"") !== directionVal)
+      return false;
 
-        if (!allPoints.length) {
-          showNotice('No valid points in incidents.geojson (coordinates null).');
-        }
-      } catch(err) {
-        showNotice('Could not load incidents.geojson. Ensure it exists beside index.html.');
-        console.error(err);
-      }
-    }
+    if (riddorVal && String(props.RIDDOR_SMIS||"") !== riddorVal)
+      return false;
 
-    // Chunked build so the heat layer doesn't freeze the UI on large files
-    function buildHeatLayerChunked(points){
-      if(heatLayer){ map.removeLayer(heatLayer); heatLayer = null; }
-      heatLayer = L.heatLayer([], {
-        radius: Number(document.getElementById('radius').value) || heatDefaults.radius,
-        blur: heatDefaults.blur,
-        maxZoom: heatDefaults.maxZoom,
-        max: Number(document.getElementById('intensity').value) || heatDefaults.max
-      }).addTo(map);
-      heatLayer.setOptions({
-        opacity: Number(document.getElementById('opacity').value) || 0.7
-      });
+    const t = String(props.Incident||"").trim().toLowerCase();
+    if (t) possibleTypes.add(t);
 
-      const chunkSize = 1000;
-      let idx = 0, buffer = [];
-      function addChunk(){
-        const slice = points.slice(idx, idx + chunkSize);
-        for (const p of slice) buffer.push([p.lat, p.lon, p.weight]);
-        heatLayer.setLatLngs(buffer); // valid Leaflet.heat method
-        idx += chunkSize;
-        if (idx < points.length) {
-          (window.requestIdleCallback || window.setTimeout)(addChunk, 0);
-        }
-      }
-      addChunk();
-    }
+    return true;
+  });
 
-    function buildHeatLayer(points){
-      if(heatLayer){ map.removeLayer(heatLayer); heatLayer = null; }
-      const heatData = points.map(p => [p.lat, p.lon, p.weight]);
-      heatLayer = L.heatLayer(heatData, {
-        radius: Number(document.getElementById('radius').value) || heatDefaults.radius,
-        blur: heatDefaults.blur,
-        maxZoom: heatDefaults.maxZoom,
-        max: Number(document.getElementById('intensity').value) || heatDefaults.max
-      }).addTo(map);
-      heatLayer.setOptions({ opacity: Number(document.getElementById('opacity').value) || 0.7 });
-    }
+  updateIncidentTypeDropdown(possibleTypes);
 
-    function filterPoints(){
-      const startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
-      const endDate   = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
-      const type      = document.getElementById('incidentType').value.trim().toLowerCase();
-      const location  = document.getElementById('location').value.trim().toLowerCase();
-      const direction = document.getElementById('direction').value;
-      const riddor    = document.getElementById('riddor').value;
-
-      const filtered = allPoints.filter(p => {
-        const props = p.props || {};
-        let dateOk = true;
-        if (props.DateTime){
-          const d = new Date(props.DateTime);
-          if (startDate && d < startDate) dateOk = false;
-          if (endDate && d > endDate) dateOk = false;
-        }
-        const typeOk = type ? String(props.Incident||'').toLowerCase() === type : true;
-        const locOk  = location ? String(props.Location||'').toLowerCase().includes(location) : true;
-        const dirOk  = direction ? String(props.Direction||'') === direction : true;
-        const ridOk  = riddor ? String(props.RIDDOR_SMIS||'') === riddor : true;
-        return dateOk && typeOk && locOk && dirOk && ridOk;
-      });
-
-      buildHeatLayerChunked(filtered);
-      updateKpis(allPoints, filtered);
-      resizeMap();
-      return filtered;
-    }
-
-    function attachUI(){
-      ['radius','intensity','opacity'].forEach(id =>
-        document.getElementById(id).addEventListener('input', () => {
-          buildHeatLayerChunked(filterPoints());
-        })
+  const finalFiltered = !selectedType
+    ? preliminary
+    : preliminary.filter(p =>
+        String(p.props.Incident || "").trim().toLowerCase() === selectedType
       );
-      ['startDate','endDate','incidentType','location','direction','riddor']
-        .forEach(id => document.getElementById(id).addEventListener('input', () => { filterPoints(); }));
-      document.getElementById('resetBtn').addEventListener('click', () => {
-        ['startDate','endDate','location'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('direction').value = '';
-        document.getElementById('riddor').value = '';
-        document.getElementById('incidentType').value = '';
-        filterPoints();
-      });
-      document.getElementById('fitBtn').addEventListener('click', fitToData);
-    }
 
-    function fitToData(){
-      const points = filterPoints();
-      if(!points.length) return;
-      const bounds = L.latLngBounds(points.map(p => [p.lat, p.lon]));
-      map.fitBounds(bounds.pad(0.1));
-    }
+  buildHeatLayerChunked(finalFiltered);
+  updateKpis(allPoints, finalFiltered);
+  resizeMap();
 
-    function updateKpis(all, filtered){
-      document.getElementById('kpiLoaded').textContent   = all.length.toLocaleString();
-      document.getElementById('kpiFiltered').textContent = filtered.length.toLocaleString();
-      const riddorYes = filtered.filter(p => String(p.props?.RIDDOR_SMIS||'') === 'Yes').length;
-      document.getElementById('kpiRiddorYes').textContent = riddorYes.toLocaleString();
-      const locations = new Set(filtered.map(p => String(p.props?.Location||'').trim()).filter(Boolean));
-      document.getElementById('kpiLocations').textContent = locations.size.toLocaleString();
-    }
+  return finalFiltered;
+}
 
-    function showNotice(msg){
-      const el = document.getElementById('notice');
-      el.textContent = msg; el.style.display = 'block';
-      console.warn(msg);
-      resizeMap();
-    }
+function attachUI(){
+  document.getElementById('radius').addEventListener('input', () => buildHeatLayerChunked(filterPoints()));
+  document.getElementById('intensity').addEventListener('input', () => buildHeatLayerChunked(filterPoints()));
+  document.getElementById('opacity').addEventListener('input', () => buildHeatLayerChunked(filterPoints()));
 
-    // init
-    init();
-  </script>
+  ["startDate","endDate","incidentType","location","direction","riddor"].forEach(id => {
+    document.getElementById(id).addEventListener('input', filterPoints);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    startDate.value = "";
+    endDate.value = "";
+    locationInput.value = "";
+    directionInput.value = "";
+    riddorInput.value = "";
+    incidentType.value = "";
+    filterPoints();
+  });
+
+  fitBtn.addEventListener('click', fitToData);
+}
+
+function fitToData(){
+  const points = filterPoints();
+  if (!points.length) return;
+
+  const bounds = L.latLngBounds(points.map(p => [p.lat, p.lon]));
+  map.fitBounds(bounds.pad(0.1));
+}
+
+function updateKpis(all, filtered){
+  kpiLoaded.textContent   = all.length;
+  kpiFiltered.textContent = filtered.length;
+  kpiRiddorYes.textContent = filtered.filter(p => p.props?.RIDDOR_SMIS === "Yes").length;
+  kpiLocations.textContent = new Set(filtered.map(p => p.props?.Location || "")).size;
+}
+
+function showNotice(msg){
+  const n = document.getElementById('notice');
+  n.textContent = msg;
+  n.style.display = "block";
+  resizeMap();
+}
+
+init();
+</script>
 </body>
 </html>
