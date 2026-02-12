@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>SHEQ Heat Map – Sheffield Supertram</title>
+<title>Supertram SHEQ – Heat & 3D Column Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
@@ -14,454 +14,529 @@
 <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
-<!-- deck.gl -->
+<!-- deck.gl (3D columns) -->
 <script src="https://unpkg.com/deck.gl@8.9.36/dist.min.js"></script>
 <script src="https://unpkg.com/@deck.gl/mapbox@8.9.36/dist.min.js"></script>
 
 <style>
+/* ============================================================
+   C2A – MODERN TECH/GIS THEME
+   Electric Blue + Cyan + Dark Slate
+   ============================================================ */
+
 :root {
-  --brand-900:#0b2d47; --brand-500:#1977a5;
-  --bg:#f7f9fc; --text-900:#0f172a; --text-700:#334155; --border:#d0d7de;
+  --bg-900: #0e1117;
+  --bg-800: #1a1f27;
+  --bg-700: #222933;
+  --bg-card: #1c222d;
+
+  --accent-1: #2dd4ff;   /* Cyan electric */
+  --accent-2: #3b82f6;   /* Blue electric */
+  --accent-glow: rgba(45, 212, 255, 0.35);
+
+  --text-100: #f8fafc;
+  --text-300: #cbd5e1;
+  --text-500: #94a3b8;
+
+  --border-1: #2e3746;
+  --border-2: #3b4454;
+
+  --radius: 10px;
 }
-html,body { margin:0; padding:0; height:100%; background:var(--bg); font-family:Arial, sans-serif; }
 
-.app-header { background:var(--brand-900); color:#fff; padding:8px 16px; }
-.app-header .container { display:flex; align-items:center; gap:10px; }
-.logo { height:22px; }
+/* Reset */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg-900);
+  color: var(--text-100);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
 
-.container { max-width:1200px; margin:0 auto; }
+/* ============================================================
+   HEADER — modern slim design
+   ============================================================ */
+.app-header {
+  background: var(--bg-800);
+  border-bottom: 1px solid var(--border-1);
+  padding: 14px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
 
-.kpi-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
-  padding:10px 16px; background:#fff; border-bottom:1px solid var(--border); }
+.app-header .container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-.kpi { background:#fff; border:1px solid var(--border); padding:10px; border-radius:8px; }
-.kpi .label { color:var(--text-700); font-size:.78rem; }
-.kpi .value { font-size:1.1rem; font-weight:800; }
+.logo {
+  height: 26px;
+  width: auto;
+  filter: drop-shadow(0 0 4px var(--accent-glow));
+}
 
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--accent-1);
+}
+
+.header-sub {
+  font-size: 0.85rem;
+  opacity: .8;
+  color: var(--text-500);
+}
+
+/* ============================================================
+   KPI BAR — card layout
+   ============================================================ */
+.kpi-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg-900);
+  border-bottom: 1px solid var(--border-1);
+}
+
+.kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.kpi .label {
+  font-size: 0.8rem;
+  color: var(--text-500);
+}
+
+.kpi .value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent-1);
+}
+
+/* ============================================================
+   CONTROLS PANEL — modernised
+   ============================================================ */
 #controls {
-  padding:12px 16px; background:#fff; border-bottom:1px solid var(--border);
-  display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  padding: 20px;
+  background: var(--bg-800);
+  border-bottom: 1px solid var(--border-1);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
 }
 
-.control-group { display:flex; flex-direction:column; gap:6px; }
-input,select { height:34px; padding:6px; border-radius:6px; border:1px solid var(--border); }
-
-.time-slider { width:100%; }
-
-.btn-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.btn { height:34px; padding:0 12px; border-radius:6px; cursor:pointer; font-weight:700;
-  border:1px solid var(--brand-500); background:var(--brand-500); color:#fff; }
-.btn.secondary { background:#fff; color:var(--text-900); border-color:var(--border); }
-
-.map-area { width:100%; padding:0 8px; }
-.map-row { display:flex; gap:8px; width:100%; }
-
-#map2d,#map3d { flex:1; border:1px solid var(--border); border-radius:6px; height:600px; }
-
-#tooltip3d {
-  position:absolute; z-index:9999; display:none;
-  background:#fff; padding:6px 10px; border:1px solid #ccc; border-radius:6px;
-  font-size:.8rem; pointer-events:none;
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-300);
+}
+
+input[type="date"],
+input[type="text"],
+select {
+  height: 38px;
+  padding: 6px 12px;
+  background: var(--bg-900);
+  border: 1px solid var(--border-2);
+  color: var(--text-100);
+  border-radius: var(--radius);
+  outline: none;
+}
+
+input[type="date"]:focus,
+input[type="text"]:focus,
+select:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* Sliders */
+input[type="range"] {
+  accent-color: var(--accent-1);
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  background: var(--accent-2);
+  border: 1px solid var(--accent-2);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn.secondary {
+  background: var(--bg-900);
+  color: var(--text-100);
+  border: 1px solid var(--border-2);
+}
+
+/* ============================================================
+   MAP LAYOUT
+   ============================================================ */
+.map-area {
+  width: 100%;
+  padding: 0 16px;
+  background: var(--bg-900);
+}
+
+.map-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+#map2d,
+#map3d {
+  flex: 1;
+  height: 650px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-1);
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.45);
+}
+
+/* Basemap toggle styling */
 .basemap-toggle {
-  position:absolute; top:10px; right:10px; z-index:9999;
-  background:#fff; border-radius:6px; padding:6px; border:1px solid #ccc;
-  font-size:0.85rem;
+  position: absolute;
+  z-index: 9999;
+  top: 12px;
+  right: 12px;
+  background: var(--bg-800);
+  border: 1px solid var(--border-1);
+  padding: 6px;
+  border-radius: var(--radius);
+  color: var(--text-100);
+  font-size: 0.85rem;
 }
 
-footer { padding:8px 16px; background:#fff; color:var(--text-700); font-size:.82rem;
-border-top:1px solid var(--border); }
+/* Tooltip */
+#tooltip3d {
+  position: absolute;
+  z-index: 99999;
+  display: none;
+  background: var(--bg-700);
+  color: var(--text-100);
+  padding: 6px 10px;
+  border: 1px solid var(--accent-1);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+/* Footer */
+footer {
+  padding: 14px 20px;
+  font-size: 0.85rem;
+  background: var(--bg-800);
+  color: var(--text-500);
+  border-top: 1px solid var(--border-1);
+}
+
+/* Time slider label */
+#timeSliderLabel {
+  font-size: 0.8rem;
+  color: var(--text-300);
+  padding-top: 4px;
+}
 </style>
+
 </head>
 
-<body>
 
-<!-- HEADER -->
-<div class="app-header">
-  <div class="container">
-    <img src="./STLogo.jpg" class="logo" onerror="this.src='./logo.png'">
+<!-- SECTION 2 - BODY STRUCTURE -->
+<div class='app-header'>
+  <div class='container'>
+    <img src='./STLogo.jpg' class='logo' alt='Supertram Logo'>
     <div>
-      <div style="font-weight:800;font-size:1rem;">SHEQ Heat Map</div>
-      <div style="font-size:.8rem;opacity:.9;">Sheffield Supertram – Safety, Health, Environment & Quality</div>
+      <div class='header-title'>SHEQ Heat & 3D Map Dashboard</div>
+      <div class='header-sub'>Sheffield Supertram – Safety, Health, Environment & Quality</div>
     </div>
   </div>
 </div>
 
-<!-- KPIs -->
-<section class="kpi-bar container">
-  <div class="kpi"><div class="label">Incidents (loaded)</div><div class="value" id="kpiLoaded">0</div></div>
-  <div class="kpi"><div class="label">Incidents (filtered)</div><div class="value" id="kpiFiltered">0</div></div>
-  <div class="kpi"><div class="label">RIDDOR (Yes)</div><div class="value" id="kpiRiddorYes">0</div></div>
-  <div class="kpi"><div class="label">Locations (unique)</div><div class="value" id="kpiLocations">0</div></div>
+<section class='kpi-bar container'>
+  <div class='kpi'><div class='label'>Incidents (loaded)</div><div class='value' id='kpiLoaded'>0</div></div>
+  <div class='kpi'><div class='label'>Incidents (filtered)</div><div class='value' id='kpiFiltered'>0</div></div>
+  <div class='kpi'><div class='label'>RIDDOR (Yes)</div><div class='value' id='kpiRiddorYes'>0</div></div>
+  <div class='kpi'><div class='label'>Locations (unique)</div><div class='value' id='kpiLocations'>0</div></div>
 </section>
 
-<!-- FILTERS -->
-<div id="controls" class="container">
-  <div class="control-group">
-    <label>Start Date</label><input type="date" id="startDate">
+<div id='controls' class='container'>
+  <div class='control-group'>
+    <label>Start Date</label>
+    <input type='date' id='startDate'>
   </div>
-  <div class="control-group">
-    <label>End Date</label><input type="date" id="endDate">
+  <div class='control-group'>
+    <label>End Date</label>
+    <input type='date' id='endDate'>
   </div>
-  <div class="control-group">
+  <div class='control-group' style='grid-column:1 / -1;'>
     <label>Time Slider</label>
-    <input type="range" id="timeSlider" min="0" max="100" value="100" class="time-slider">
+    <input type='range' id='timeSlider' min='0' max='100' value='100' class='time-slider'>
+    <div id='timeSliderLabel'>Showing incidents up to: All dates</div>
   </div>
-  <div class="control-group">
+  <div class='control-group'>
     <label>Incident Type</label>
-    <select id="incidentType"><option value="">(All)</option></select>
+    <select id='incidentType'><option value=''>All</option></select>
   </div>
-  <div class="control-group">
-    <label>Location</label><input type="text" id="location">
+  <div class='control-group'>
+    <label>Location</label>
+    <input type='text' id='location'>
   </div>
-  <div class="control-group">
+  <div class='control-group'>
     <label>Direction</label>
-    <select id="direction"><option value="">(All)</option><option>Inbound</option><option>Outbound</option></select>
+    <select id='direction'><option value=''>All</option><option>Inbound</option><option>Outbound</option></select>
   </div>
-  <div class="control-group">
+  <div class='control-group'>
     <label>RIDDOR/SMIS</label>
-    <select id="riddor"><option value="">(All)</option><option>Yes</option><option>No</option></select>
+    <select id='riddor'><option value=''>All</option><option>Yes</option><option>No</option></select>
   </div>
-  <div class="control-group">
+  <div class='control-group'>
     <label>Heat Options</label>
-    <div class="btn-row">
-      <span>Radius</span><input type="range" id="radius" min="5" max="50" value="25">
-      <span>Intensity</span><input type="range" id="intensity" min="0.2" max="3" step="0.1" value="1.5">
-      <span>Opacity</span><input type="range" id="opacity" min="0.1" max="1" step="0.05" value="0.7">
+    <div class='btn-row'>
+      <span>Radius</span><input type='range' id='radius' min='5' max='50' value='25'>
+      <span>Intensity</span><input type='range' id='intensity' min='0.2' max='3' step='0.1' value='1.5'>
+      <span>Opacity</span><input type='range' id='opacity' min='0.1' max='1' step='0.05' value='0.7'>
     </div>
   </div>
-  <div class="control-group">
+  <div class='control-group'>
     <label>&nbsp;</label>
-    <div class="btn-row">
-      <button id="resetBtn" class="btn secondary">Reset</button>
-      <button id="fitBtn" class="btn">Fit to Data</button>
+    <div class='btn-row'>
+      <button id='resetBtn' class='btn secondary'>Reset</button>
+      <button id='fitBtn' class='btn'>Fit to Data</button>
     </div>
   </div>
 </div>
 
-<!-- MAPS -->
-<div class="map-area">
-  <div class="map-row">
-    <div id="map2d"></div>
-    <div id="map3d">
-      <div class="basemap-toggle">
-        <select id="basemapSelect">
-          <option value="street">Street</option>
-          <option value="satellite">Satellite</option>
-          <option value="terrain">Terrain</option>
+<div class='map-area'>
+  <div class='map-row'>
+    <div id='map2d'></div>
+    <div id='map3d'>
+      <div class='basemap-toggle'>
+        <select id='basemapSelect'>
+          <option value='street'>Street</option>
+          <option value='satellite'>Satellite</option>
+          <option value='terrain'>Terrain</option>
         </select>
       </div>
     </div>
   </div>
 </div>
 
-<div id="tooltip3d"></div>
+<div id='tooltip3d'></div>
 
-<footer class="container">
-  © SYFTL Supertram • <span id="refreshedAt">Data refreshed: —</span>
+<footer class='container'>
+  © SYFTL Supertram • <span id='refreshedAt'>Data refreshed: —</span>
 </footer>
 
-<script>
-const API_KEY = "ryV7YzWDB5SrLWGznrXZ";
-const GEOJSON_URL = "./incidents.geojson";
-let map2d, heatLayer, allPoints = [];
-let map3d, columnLayer;
-let minTime = 0, maxTime = 100;
+ 
+// SECTION 3 – 2D HEATMAP + FILTER ENGINE
 
-init();
-
-// ------------------------------
-// INIT
-// ------------------------------
-function init(){
-  init2D();
-  init3D("street");
-  loadIncidents().then(() => {
-    populateIncidentTypes(allPoints);
-    computeTimeRange(allPoints);
-    buildHeat(allPoints);
-    update3D(allPoints);
-    updateKpis(allPoints, allPoints);
-    attachUI();
-    document.getElementById("refreshedAt").textContent =
-      "Data refreshed: " + new Date().toLocaleString();
-    resizeMaps();
-    window.addEventListener("resize", resizeMaps);
-  });
-}
-
-// ------------------------------
-// 2D MAP
-// ------------------------------
-function init2D(){
-  map2d = L.map("map2d");
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map2d);
-  map2d.setView([53.382, -1.463], 12);
-}
-
-// ------------------------------
-// 3D MAP + BASEMAP MODES
-// ------------------------------
-function init3D(mode){
-  let styleURL;
-
-  if(mode === "street"){
-    styleURL = `https://api.maptiler.com/maps/streets/style.json?key=${API_KEY}`;
-  }
-  if(mode === "satellite"){
-    styleURL = `https://api.maptiler.com/maps/hybrid/style.json?key=${API_KEY}`;
-  }
-  if(mode === "terrain"){
-    styleURL = `https://api.maptiler.com/maps/terrain/style.json?key=${API_KEY}`;
-  }
-
-  if (map3d){
-    map3d.setStyle(styleURL);
-    return;
-  }
-
-  map3d = new maplibregl.Map({
-    container:"map3d",
-    style:styleURL,
-    center:[-1.463,53.382],
-    zoom:12,
-    pitch:45,
-    bearing:-20
-  });
-
-  map3d.on("load",()=>{
-    map3d.addSource("terrain",{
-      type:"raster-dem",
-      url:`https://api.maptiler.com/tiles/terrain-rgb/tiles.json?key=${API_KEY}`,
-      tileSize:256
-    });
-    map3d.setTerrain({source:"terrain",exaggeration:1.3});
-
-    map3d.setSky({
-      type:"gradient",
-      gradient:[
-        [0.0,"rgba(135,206,235,1.0)"],
-        [1.0,"rgba(255,255,255,0.0)"]
-      ]
-    });
-  });
-}
+// Global vars referenced by both maps
+let allPoints = [];
+let minTime = 0, maxTime = 0;
+const GEOJSON_URL = './incidents.geojson';
 
 // ------------------------------
 // LOAD INCIDENTS
 // ------------------------------
-async function loadIncidents(){
-  const res = await fetch(GEOJSON_URL+"?v="+Date.now());
+async function loadIncidents() {
+  const res = await fetch(GEOJSON_URL + '?v=' + Date.now());
   const data = await res.json();
+
   allPoints = data.features
-    .filter(f=>f.geometry?.type==="Point")
-    .map(f=>{
-      const [lon,lat]=f.geometry.coordinates;
-      const p=f.properties;
-      return{
-        lat,lon,props:p,
-        weight:p.RIDDOR_SMIS==="Yes"?1.5:0.6,
-        time: p.DateTime ? new Date(p.DateTime).getTime() : 0
+    .filter(f => f.geometry && f.geometry.type === 'Point')
+    .map(f => {
+      const [lon, lat] = f.geometry.coordinates;
+      const p = f.properties || {};
+      return {
+        lat,
+        lon,
+        props: p,
+        weight: (String(p.RIDDOR_SMIS || '').trim().toLowerCase() === 'yes') ? 1.5 : 0.6,
+        time: p.DateTime ? new Date(p.DateTime).getTime() : null
       };
     });
 }
 
 // ------------------------------
-// INCIDENT TYPES
+// INCIDENT TYPE DROPDOWN POPULATION
 // ------------------------------
-function populateIncidentTypes(data){
-  const s = document.getElementById("incidentType");
-  const set = new Set(data.map(p=>p.props.Incident).filter(Boolean));
-  set.forEach(t=>{
-    const o=document.createElement("option");
-    o.value=t; o.textContent=t;
-    s.appendChild(o);
+function populateIncidentTypes(data) {
+  const select = document.getElementById('incidentType');
+  const set = new Set(data.map(p => String(p.props.Incident || '')).filter(Boolean));
+
+  set.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = t;
+    select.appendChild(opt);
   });
 }
 
 // ------------------------------
-// TIME RANGE
+// COMPUTE GLOBAL TIME RANGE
 // ------------------------------
-function computeTimeRange(data){
-  const times = data.map(p=>p.time).filter(Boolean);
-  if(times.length){
+function computeTimeRange(data) {
+  const times = data.map(p => p.time).filter(t => t !== null);
+  if (times.length) {
     minTime = Math.min(...times);
     maxTime = Math.max(...times);
   }
 }
 
 // ------------------------------
-// 2D HEATMAP
+// HEATMAP BUILDER
 // ------------------------------
-function buildHeat(points){
-  if(heatLayer) map2d.removeLayer(heatLayer);
+let heatLayer;
 
-  const r=+document.getElementById("radius").value;
-  const inten=+document.getElementById("intensity").value;
-  const op=+document.getElementById("opacity").value;
+function buildHeat(points) {
+  if (heatLayer) map2d.removeLayer(heatLayer);
 
-  heatLayer=L.heatLayer(
-    points.map(p=>[p.lat,p.lon,p.weight*inten]),
-    {radius:r,blur:20,maxZoom:17}
-  ).addTo(map2d);
+  const r = +document.getElementById('radius').value;
+  const inten = +document.getElementById('intensity').value;
+  const op = +document.getElementById('opacity').value;
 
-  heatLayer.setOptions({opacity:op});
+  const heatData = points.map(p => [p.lat, p.lon, p.weight * inten]);
+
+  heatLayer = L.heatLayer(heatData, { radius: r, blur: 20, maxZoom: 17 }).addTo(map2d);
+  heatLayer.setOptions({ opacity: op });
 }
 
 // ------------------------------
-// 3D COLUMNS
+// INCIDENT TYPE GREY-OUT
 // ------------------------------
-function aggregateColumns(points){
-  const map = new Map();
-  for(const p of points){
-    const k=`${p.lon},${p.lat}`;
-    if(!map.has(k)) map.set(k,{lon:p.lon,lat:p.lat,count:0,weighted:0});
-    const o=map.get(k);
-    o.count++;
-    o.weighted+=p.weight;
-  }
-  return [...map.values()].map(o=>({
-    ...o,
-    color:[
-      Math.min(255,o.weighted*25),
-      80,
-      Math.max(0,255-o.weighted*25)
-    ]
-  }));
-}
+function updateIncidentTypeDropdown(possibleTypes) {
+  const select = document.getElementById('incidentType');
+  const opts = select.querySelectorAll('option');
 
-function update3D(points){
-  const agg=aggregateColumns(points);
-  const tip=document.getElementById("tooltip3d");
+  opts.forEach(opt => {
+    const val = opt.value.trim().toLowerCase();
+    if (val === '') return;
 
-  const layer=new deck.MapboxLayer({
-    id:"columns",
-    type:deck.ColumnLayer,
-    data:agg,
-    extruded:true,
-    radius:80,
-    diskResolution:20,
-    elevationScale:18,
-    getPosition:d=>[d.lon,d.lat],
-    getElevation:d=>d.weighted,
-    getFillColor:d=>d.color,
-    pickable:true,
-    onHover:info=>{
-      if(info.object){
-        tip.style.left=info.x+"px";
-        tip.style.top=info.y+"px";
-        tip.innerHTML=`<strong>Incidents:</strong> ${info.object.count}<br>
-          <strong>Weighted:</strong> ${info.object.weighted.toFixed(1)}`;
-        tip.style.display="block";
-      } else tip.style.display="none";
+    if (!possibleTypes.has(val)) {
+      opt.disabled = true;
+      opt.style.color = '#666';
+    } else {
+      opt.disabled = false;
+      opt.style.color = '';
     }
   });
+}
 
-  if(columnLayer) map3d.removeLayer("columns");
-  columnLayer=layer;
-  map3d.addLayer(layer);
+// ------------------------------
+// KPI UPDATE
+// ------------------------------
+function updateKpis(all, filtered) {
+  document.getElementById('kpiLoaded').textContent = all.length;
+  document.getElementById('kpiFiltered').textContent = filtered.length;
+
+  const riddorYes = filtered.filter(p => String(p.props.RIDDOR_SMIS || '').trim().toLowerCase() === 'yes').length;
+  document.getElementById('kpiRiddorYes').textContent = riddorYes;
+
+  const locs = new Set(filtered.map(p => p.props.Location).filter(Boolean));
+  document.getElementById('kpiLocations').textContent = locs.size;
 }
 
 // ------------------------------
 // FILTERING + TIME SLIDER
 // ------------------------------
-function filterPoints(){
-  const s=document.getElementById("startDate").value;
-  const e=document.getElementById("endDate").value;
-  const sliderPercent=+document.getElementById("timeSlider").value;
+function filterPoints() {
+  const s = document.getElementById('startDate').value;
+  const e = document.getElementById('endDate').value;
+  const t = document.getElementById('incidentType').value.toLowerCase();
+  const loc = document.getElementById('location').value.toLowerCase();
+  const dir = document.getElementById('direction').value.toLowerCase();
+  const rid = document.getElementById('riddor').value.toLowerCase();
 
-  const t=document.getElementById("incidentType").value.toLowerCase();
-  const loc=document.getElementById("location").value.toLowerCase();
-  const dir=document.getElementById("direction").value;
-  const rid=document.getElementById("riddor").value;
+  const sliderPercent = +document.getElementById('timeSlider').value;
+  const cutoff = minTime + (sliderPercent / 100) * (maxTime - minTime);
 
-  const cutoff = minTime + (sliderPercent/100) * (maxTime - minTime);
+  // Update label
+  if (maxTime > 0) {
+    const d = new Date(cutoff);
+    document.getElementById('timeSliderLabel').textContent =
+      "Showing incidents up to: " + d.toLocaleDateString();
+  }
 
-  const filtered=allPoints.filter(p=>{
-    const pr=p.props;
+  // Pass 1: build possible incident types
+  const possibleTypes = new Set();
+  allPoints.forEach(p => {
+    const pr = p.props;
 
-    if(pr.DateTime){
-      const dt=new Date(pr.DateTime);
-      if(s && dt < new Date(s)) return false;
-      if(e && dt > new Date(e)) return false;
-      if(p.time > cutoff) return false;
-    }
+    if (s && pr.DateTime && new Date(pr.DateTime) < new Date(s)) return;
+    if (e && pr.DateTime && new Date(pr.DateTime) > new Date(e)) return;
+    if (p.time && p.time > cutoff) return;
 
-    if(t && pr.Incident.toLowerCase()!==t) return false;
-    if(loc && !pr.Location.toLowerCase().includes(loc)) return false;
-    if(dir && pr.Direction!==dir) return false;
-    if(rid && pr.RIDDOR_SMIS!==rid) return false;
+    if (loc && !String(pr.Location || '').toLowerCase().includes(loc)) return;
+
+    if (dir && String(pr.Direction || '').trim().toLowerCase() !== dir) return;
+    if (rid && String(pr.RIDDOR_SMIS || '').trim().toLowerCase() !== rid) return;
+
+    possibleTypes.add(String(pr.Incident || '').trim().toLowerCase());
+  });
+
+  updateIncidentTypeDropdown(possibleTypes);
+
+  const filtered = allPoints.filter(p => {
+    const pr = p.props;
+
+    if (s && pr.DateTime && new Date(pr.DateTime) < new Date(s)) return false;
+    if (e && pr.DateTime && new Date(pr.DateTime) > new Date(e)) return false;
+    if (p.time && p.time > cutoff) return false;
+
+    if (t && String(pr.Incident || '').trim().toLowerCase() !== t) return false;
+    if (loc && !String(pr.Location || '').toLowerCase().includes(loc)) return false;
+    if (dir && String(pr.Direction || '').trim().toLowerCase() !== dir) return false;
+    if (rid && String(pr.RIDDOR_SMIS || '').trim().toLowerCase() !== rid) return false;
 
     return true;
   });
 
   buildHeat(filtered);
   update3D(filtered);
-  updateKpis(allPoints,filtered);
+  updateKpis(allPoints, filtered);
   return filtered;
 }
 
 // ------------------------------
-// KPI UPDATE
+// RESET + FIT BUTTONS
 // ------------------------------
-function updateKpis(all,filtered){
-  document.getElementById("kpiLoaded").textContent = all.length;
-  document.getElementById("kpiFiltered").textContent = filtered.length;
-  document.getElementById("kpiRiddorYes").textContent =
-    filtered.filter(p=>p.props.RIDDOR_SMIS==="Yes").length;
-  document.getElementById("kpiLocations").textContent =
-    new Set(filtered.map(p=>p.props.Location)).size;
-}
-
-// ------------------------------
-// UI EVENTS
-// ------------------------------
-function attachUI(){
+function attachUI() {
   [
-    "radius","intensity","opacity",
-    "startDate","endDate","incidentType",
-    "location","direction","riddor","timeSlider"
-  ].forEach(id=>{
-    document.getElementById(id).addEventListener("input",filterPoints);
-  });
+    'radius','intensity','opacity','startDate','endDate','incidentType',
+    'location','direction','riddor','timeSlider'
+  ].forEach(id => document.getElementById(id).addEventListener('input', filterPoints));
 
-  document.getElementById("basemapSelect").addEventListener("change",e=>{
-    init3D(e.target.value);
-    update3D(filterPoints());
-  });
-
-  document.getElementById("resetBtn").onclick=()=>{
-    [
-      "startDate","endDate","location","direction","riddor","incidentType"
-    ].forEach(id=>document.getElementById(id).value="");
-    document.getElementById("timeSlider").value=100;
+  document.getElementById('resetBtn').onclick = () => {
+    ['startDate','endDate','location','direction','riddor','incidentType']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('timeSlider').value = 100;
     filterPoints();
   };
 
-  document.getElementById("fitBtn").onclick=()=>{
-    const pts=filterPoints();
-    if(!pts.length) return;
-    map2d.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lon])).pad(0.1));
+  document.getElementById('fitBtn').onclick = () => {
+    const pts = filterPoints();
+    if (!pts.length) return;
+    const bounds = L.latLngBounds(pts.map(p => [p.lat, p.lon]));
+    map2d.fitBounds(bounds.pad(0.1));
   };
 }
 
-// ------------------------------
-// RESIZE MAPS
-// ------------------------------
-function resizeMaps(){
-  const h = window.innerHeight
-    - document.querySelector(".app-header").offsetHeight
-    - document.querySelector(".kpi-bar").offsetHeight
-    - document.getElementById("controls").offsetHeight
-    - 120;
-
-  const height = Math.max(420,h);
-  document.getElementById("map2d").style.height = height+"px";
-  document.getElementById("map3d").style.height = height+"px";
-  setTimeout(()=>map2d.invalidateSize(),50);
-}
-</script>
-
-</body>
-</html>
+      
