@@ -1,1 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SHEQ Heat Map – Sheffield Supertram</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- MapLibre (3D map engine) -->
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+  <!-- deck.gl (3D layers) -->
+  <script src="https://unpkg.com/deck.gl@8.9.36/dist.min.js"></script>
+  <script src="https://unpkg.com/@deck.gl/mapbox@8.9.36/dist.min.js"></script>
+
+  <style>
+    :root {
+      --brand-900: #0b2d47;
+      --brand-500: #1977a5;
+      --bg: #f7f9fc;
+      --text-900: #0f172a;
+      --text-700: #334155;
+      --border: #d0d7de;
+    }
+    html, body { height: 100%; margin: 0; }
+    body { background: var(--bg); color: var(--text-900); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+    .app-header { display:flex; align-items:center; gap:10px; padding: 8px 16px; background: var(--brand-900); color:#fff; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .app-header .logo { height: 22px; }
+    .app-header .titles { display:flex; flex-direction:column; }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    .kpi-bar { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap:10px; padding: 10px 16px; background:#fff; border-bottom:1px solid var(--border); }
+    .kpi { background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+    .kpi .label { color: var(--text-700); font-size:.78rem; }
+    .kpi .value { font-size:1.1rem; font-weight:800; }
+
+    #controls { padding:12px 16px; background:#fff; border-bottom:1px solid var(--border);
+      display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+    label { font-weight:700; font-size:.85rem; color:var(--text-700); }
+    input[type="text"], input[type="date"], select {
+      height:34px; padding:6px 10px; border:1px solid var(--border); border-radius:6px; background:#fff;
+    }
+    .btn-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn { height:34px; border-radius:6px; border:1px solid var(--brand-500); background:var(--brand-500);
+      color:#fff; padding:0 12px; cursor:pointer; font-weight:700; }
+    .btn.secondary { background:#fff; color:var(--text-900); border-color:var(--border); }
+
+    /* MAP AREA FULL WIDTH */
+    .map-area { width:100%; padding: 0 8px; }
+    .map-row { display:flex; width:100%; gap:8px; }
+    #map2d, #map3d { flex:1; height:600px; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+
+    .notice { margin:0; padding:8px 16px; background:#fff3cd; border-bottom:1px solid #ffeeba; color:#856404; display:none; }
+    footer { padding:10px 16px; border-top:1px solid var(--border); color:var(--text-700); font-size:.82rem; background:#fff; }
+
+    #tooltip3d {
+      position: absolute;
+      pointer-events: none;
+      z-index: 9999;
+      background: rgba(255,255,255,0.9);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.8rem;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-header">
+    <div class="container" style="display:flex;align-items:center;gap:10px;">
+      <img src="./STLogo.jpg" class="logo" alt="Supertram Logo" onerror="this.src='./logo.png'">
+      <div class="titles">
+        <div class="h1" style="font-size:0.95rem;font-weight:800;">SHEQ Heat Map</div>
+        <div class="sub" style="font-size:.78rem;opacity:.9;">Sheffield Supertram – Safety, Health, Environment & Quality</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="kpi-bar container">
+    <div class="kpi"><div class="label">Incidents (loaded)</div><div class="value" id="kpiLoaded">0</div></div>
+    <div class="kpi"><div class="label">Incidents (filtered)</div><div class="value" id="kpiFiltered">0</div></div>
+    <div class="kpi"><div class="label">RIDDOR (Yes)</div><div class="value" id="kpiRiddorYes">0</div></div>
+    <div class="kpi"><div class="label">Locations (unique)</div><div class="value" id="kpiLocations">0</div></div>
+  </section>
+
+  <div id="controls" class="container">
+    <div class="control-group"><label>Start Date</label><input type="date" id="startDate"></div>
+    <div class="control-group"><label>End Date</label><input type="date" id="endDate"></div>
+
+    <div class="control-group">
+      <label>Incident Type</label>
+      <select id="incidentType">
+        <option value="">(All)</option>
+      </select>
+    </div>
+
+    <div class="control-group"><label>Location</label><input type="text" id="location"></div>
+    <div class="control-group">
+      <label>Direction</label>
+      <select id="direction"><option value="">(All)</option><option value="Inbound">Inbound</option><option value="Outbound">Outbound</option></select>
+    </div>
+
+    <div class="control-group">
+      <label>RIDDOR/SMIS</label>
+      <select id="riddor"><option value="">(All)</option><option value="Yes">Yes</option><option value="No">No</option></select>
+    </div>
+
+    <div class="control-group">
+      <label>Heat Options</label>
+      <div class="btn-row">
+        <span>Radius</span><input type="range" id="radius" min="5" max="50" value="25">
+        <span>Intensity</span><input type="range" id="intensity" min="0.2" max="3" step="0.1" value="1.5">
+        <span>Opacity</span><input type="range" id="opacity" min="0.1" max="1" step="0.05" value="0.7">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>&nbsp;</label>
+      <div class="btn-row">
+        <button id="resetBtn" class="btn secondary">Reset Filters</button>
+        <button id="fitBtn" class="btn">Fit to Data</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="notice container" id="notice"></p>
+
+  <!-- FULL-WIDTH MAP AREA -->
+  <div class="map-area">
+    <div class="map-row">
+      <div id="map2d"></div>
+      <div id="map3d"></div>
+    </div>
+  </div>
+
+  <div id="tooltip3d"></div>
+
+  <footer class="container">
+    <span>© SYFTL Supertram</span>
+    <span style="margin:0 8px;color:#cbd5e1;">•</span>
+    <span id="refreshedAt">Data refreshed: —</span>
+  </footer>
+
+<script>
+const GEOJSON_URL = './incidents.geojson';
+let map2d, heatLayer, allPoints = [];
+let map3d, columnLayer;
+
+function init() {
+  init2D();
+  init3D();
+  loadIncidents().then(() => {
+    buildHeat(allPoints);
+    updateKpis(allPoints, allPoints);
+    attachUI();
+    document.getElementById('refreshedAt').textContent =
+      'Data refreshed: ' + new Date().toLocaleString();
+    resizeMaps();
+    window.addEventListener('resize', resizeMaps);
+  });
+}
+
+function init2D() {
+  map2d = L.map('map2d');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map2d);
+  map2d.setView([53.382, -1.463], 12);
+}
+
+function init3D() {
+  map3d = new maplibregl.Map({
+    container: 'map3d',
+    style: 'https://demotiles.maplibre.org/style.json',
+    center: [-1.463, 53.382],
+    zoom: 12,
+    pitch: 45
+  });
+}
+
+async function loadIncidents() {
+  const res = await fetch(GEOJSON_URL + '?v=' + Date.now());
+  const data = await res.json();
+  allPoints = data.features
+    .filter(f => f.geometry && f.geometry.type === 'Point')
+    .map(f => {
+      const [lon, lat] = f.geometry.coordinates;
+      const props = f.properties || {};
+      const weight = (props.RIDDOR_SMIS === 'Yes') ? 1.5 : 0.6;
+      return { lat, lon, weight, props };
+    });
+}
+
+function buildHeat(points) {
+  if (heatLayer) map2d.removeLayer(heatLayer);
+
+  const r = +document.getElementById('radius').value;
+  const intensity = +document.getElementById('intensity').value;
+  const op = +document.getElementById('opacity').value;
+
+  heatLayer = L.heatLayer(
+    points.map(p => [p.lat, p.lon, p.weight * intensity]),
+    { radius: r, blur: 20, maxZoom: 17 }
+  ).addTo(map2d);
+  heatLayer.setOptions({ opacity: op });
+}
+
+function aggregateFor3D(points) {
+  const m = new Map();
+  for (const p of points) {
+    const key = `${p.lon},${p.lat}`;
+    if (!m.has(key)) m.set(key, { lon: p.lon, lat: p.lat, count: 0, weighted: 0 });
+    const obj = m.get(key);
+    obj.count++;
+    obj.weighted += p.weight;
+  }
+  return [...m.values()].map(o => ({
+    ...o,
+    color: [
+      Math.min(255, o.weighted * 20),
+      80,
+      Math.max(0, 255 - o.weighted * 20)
+    ]
+  }));
+}
+
+function update3D(points) {
+  const agg = aggregateFor3D(points);
+  const tooltip = document.getElementById('tooltip3d');
+
+  const newLayer = new deck.MapboxLayer({
+    id: 'columns',
+    type: deck.ColumnLayer,
+    data: agg,
+    diskResolution: 20,
+    extruded: true,
+    radius: 80,
+    elevationScale: 15,
+    getPosition: d => [d.lon, d.lat],
+    getElevation: d => d.weighted,
+    getFillColor: d => d.color,
+    pickable: true,
+    onHover: info => {
+      if (info.object) {
+        tooltip.style.left = info.x + 'px';
+        tooltip.style.top = info.y + 'px';
+        tooltip.innerHTML = `
+          <strong>Incidents:</strong> ${info.object.count}<br>
+          <strong>Weighted:</strong> ${info.object.weighted.toFixed(1)}
+        `;
+        tooltip.style.display = 'block';
+      } else {
+        tooltip.style.display = 'none';
+      }
+    }
+  });
+
+  if (columnLayer) map3d.removeLayer('columns');
+  columnLayer = newLayer;
+  map3d.addLayer(columnLayer);
+}
+
+function filterPoints() {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  const type = document.getElementById('incidentType').value.toLowerCase();
+  const loc = document.getElementById('location').value.toLowerCase();
+  const dir = document.getElementById('direction').value;
+  const rid = document.getElementById('riddor').value;
+
+  const filtered = allPoints.filter(p => {
+    const props = p.props;
+    if (start && props.DateTime && new Date(props.DateTime) < new Date(start)) return false;
+    if (end && props.DateTime && new Date(props.DateTime) > new Date(end)) return false;
+    if (type && props.Incident.toLowerCase() !== type) return false;
+    if (loc && !props.Location.toLowerCase().includes(loc)) return false;
+    if (dir && props.Direction !== dir) return false;
+    if (rid && props.RIDDOR_SMIS !== rid) return false;
+    return true;
+  });
+
+  buildHeat(filtered);
+  update3D(filtered);
+  updateKpis(allPoints, filtered);
+  return filtered;
+}
+
+function updateKpis(all, filtered) {
+  document.getElementById('kpiLoaded').textContent = all.length;
+  document.getElementById('kpiFiltered').textContent = filtered.length;
+  document.getElementById('kpiRiddorYes').textContent =
+    filtered.filter(p => p.props.RIDDOR_SMIS === 'Yes').length;
+  document.getElementById('kpiLocations').textContent =
+    new Set(filtered.map(p => p.props.Location)).size;
+}
+
+function attachUI() {
+  ['radius','intensity','opacity','startDate','endDate','incidentType','location','direction','riddor']
+    .forEach(id => document.getElementById(id).addEventListener('input', filterPoints));
+
+  document.getElementById('resetBtn').onclick = () => {
+    ['startDate','endDate','location','direction','riddor','incidentType']
+      .forEach(id => document.getElementById(id).value = '');
+    filterPoints();
+  };
+
+  document.getElementById('fitBtn').onclick = () => {
+    const pts = filterPoints();
+    if (!pts.length) return;
+    map2d.fitBounds(L.latLngBounds(pts.map(p => [p.lat, p.lon])).pad(0.1));
+  };
+}
+
+function resizeMaps() {
+  const h =
+    window.innerHeight -
+    document.querySelector('.app-header').offsetHeight -
+    document.querySelector('.kpi-bar').offsetHeight -
+    document.getElementById('controls').offsetHeight -
+    120;
+
+  document.getElementById('map2d').style.height = Math.max(420, h) + 'px';
+  document.getElementById('map3d').style.height = Math.max(420, h) + 'px';
+  setTimeout(() => map2d.invalidateSize(), 50);
+}
+
+init();
+</script>
+</body>
+</html>
