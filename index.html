@@ -539,4 +539,188 @@ function attachUI() {
   };
 }
 
-      
+
+// SECTION 4 – 3D MAPLIBRE + DECK.GL COLUMNS + BASEMAP TOGGLES
+
+// API Key for MapTiler styles/terrain (replace if needed)
+const API_KEY = 'ryV7YzWDB5SrLWGznrXZ';
+
+// Map instances
+let map2d; // defined in Section 2/3 context
+let map3d; // MapLibre instance
+let columnLayer; // deck.gl layer reference
+
+// ------------------------------
+// INIT 2D (called by Section 1/2 wrapper)
+// ------------------------------
+function init2D() {
+  map2d = L.map('map2d');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map2d);
+  map2d.setView([53.382, -1.463], 12);
+}
+
+// ------------------------------
+// INIT 3D + BASEMAP MODE
+// ------------------------------
+function init3D(mode = 'street') {
+  const styleURL = getStyleURL(mode);
+
+  if (map3d) {
+    map3d.setStyle(styleURL);
+    // Re-add terrain and sky after style change
+    map3d.once('styledata', () => {
+      addTerrainAndSky();
+      // Reattach columns on style change
+      if (columnLayer) {
+        try { map3d.removeLayer('columns'); } catch(e){}
+        map3d.addLayer(columnLayer);
+      }
+    });
+    return;
+  }
+
+  map3d = new maplibregl.Map({
+    container: 'map3d',
+    style: styleURL,
+    center: [-1.463, 53.382],
+    zoom: 12,
+    pitch: 45,
+    bearing: -20
+  });
+
+  // Attribution default (legal)
+  map3d.addControl(new maplibregl.AttributionControl({ compact: true }));
+
+  map3d.on('load', () => {
+    addTerrainAndSky();
+  });
+}
+
+function getStyleURL(mode) {
+  if (mode === 'satellite') return `https://api.maptiler.com/maps/hybrid/style.json?key=${API_KEY}`;
+  if (mode === 'terrain')   return `https://api.maptiler.com/maps/terrain/style.json?key=${API_KEY}`;
+  return `https://api.maptiler.com/maps/streets/style.json?key=${API_KEY}`; // street default
+}
+
+function addTerrainAndSky(){
+  if (!map3d.getSource('terrain')){
+    map3d.addSource('terrain', {
+      type: 'raster-dem',
+      url: `https://api.maptiler.com/tiles/terrain-rgb/tiles.json?key=${API_KEY}`,
+      tileSize: 256
+    });
+  }
+  map3d.setTerrain({ source: 'terrain', exaggeration: 1.3 });
+
+  // Sky layer
+  try {
+    map3d.setSky({
+      type: 'gradient',
+      gradient: [
+        [0.0, 'rgba(135,206,235,1.0)'],
+        [1.0, 'rgba(255,255,255,0.0)']
+      ]
+    });
+  } catch(e) { /* older MapLibre may not support setSky */ }
+}
+
+// ------------------------------
+// 3D COLUMNS – Adaptive scaling (Option C)
+// ------------------------------
+function aggregateColumns(points){
+  const m = new Map();
+  for (const p of points){
+    const k = `${p.lon},${p.lat}`;
+    if (!m.has(k)) m.set(k, { lon: p.lon, lat: p.lat, count: 0, weighted: 0 });
+    const o = m.get(k);
+    o.count++;
+    o.weighted += p.weight;
+  }
+  return [...m.values()];
+}
+
+function colorFor(vNorm){
+  // C2A palette: cyan -> electric blue; vNorm in [0,1]
+  const r = Math.round(20 + 30 * (1 - vNorm));
+  const g = Math.round(200 + 40 * (1 - vNorm));
+  const b = Math.round(255 - 100 * vNorm);
+  return [r, g, b, 220];
+}
+
+function update3D(points){
+  if (!map3d) return;
+  const agg = aggregateColumns(points);
+
+  // Adaptive scaling: find max
+  let maxW = 0;
+  for (const a of agg) if (a.weighted > maxW) maxW = a.weighted;
+  const elevMax = 260; // target visual height (meters)
+
+  const tip = document.getElementById('tooltip3d');
+
+  const layer = new deck.MapboxLayer({
+    id: 'columns',
+    type: deck.ColumnLayer,
+    data: agg,
+    diskResolution: 20,
+    radius: 80,
+    extruded: true,
+    elevationScale: (maxW > 0 ? elevMax / maxW : 0),
+    getPosition: d => [d.lon, d.lat],
+    getElevation: d => d.weighted,
+    getFillColor: d => colorFor(maxW ? Math.min(1, d.weighted / maxW) : 0),
+    pickable: true,
+    onHover: info => {
+      if (info.object) {
+        tip.style.left = info.x + 'px';
+        tip.style.top = info.y + 'px';
+        tip.innerHTML = `<strong>Incidents:</strong> ${info.object.count}<br>` +
+                        `<strong>Weighted:</strong> ${info.object.weighted.toFixed(1)}`;
+        tip.style.display = 'block';
+      } else {
+        tip.style.display = 'none';
+      }
+    }
+  });
+
+  try { map3d.removeLayer('columns'); } catch(e){}
+  columnLayer = layer;
+  map3d.addLayer(layer);
+}
+
+// ------------------------------
+// BOOTSTRAP ALL
+// ------------------------------
+function init(){
+  init2D();
+  init3D('street');
+  loadIncidents().then(() => {
+    populateIncidentTypes(allPoints);
+    computeTimeRange(allPoints);
+    buildHeat(allPoints);
+    update3D(allPoints);
+    updateKpis(allPoints, allPoints);
+    attachUI();
+
+    document.getElementById('refreshedAt').textContent =
+      'Data refreshed: ' + new Date().toLocaleString();
+
+    // Basemap toggle
+    const baseSel = document.getElementById('basemapSelect');
+    baseSel.addEventListener('change', e => {
+      init3D(e.target.value);
+      // Repaint columns to ensure sync with new style
+      update3D(filterPoints());
+    });
+
+    // Fit button relies on filterPoints()
+    filterPoints();
+
+    // Simple resize logic from previous sections (optional)
+    window.addEventListener('resize', () => {
+      // If Leaflet map exists, invalidate size
+      if (map2d) setTimeout(() => map2d.invalidateSize(), 60);
+    });
+  });
+}
+       
