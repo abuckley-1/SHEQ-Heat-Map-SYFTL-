@@ -20,10 +20,8 @@
 
 <style>
 /* ============================================================
-   C2A – MODERN TECH/GIS THEME
-   Electric Blue + Cyan + Dark Slate
+   C2A – MODERN TECH/GIS THEME (Electric Blue + Cyan + Dark Slate)
    ============================================================ */
-
 :root {
   --bg-900: #0e1117;
   --bg-800: #1a1f27;
@@ -54,44 +52,36 @@ html, body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
-/* ============================================================
-   HEADER — modern slim design
-   ============================================================ */
+/* Header */
 .app-header {
   background: var(--bg-800);
   border-bottom: 1px solid var(--border-1);
   padding: 14px 20px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
-
 .app-header .container {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .logo {
   height: 26px;
   width: auto;
   filter: drop-shadow(0 0 4px var(--accent-glow));
 }
-
 .header-title {
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: .5px;
   color: var(--accent-1);
 }
-
 .header-sub {
   font-size: 0.85rem;
   opacity: .8;
   color: var(--text-500);
 }
 
-/* ============================================================
-   KPI BAR — card layout
-   ============================================================ */
+/* KPI bar */
 .kpi-bar {
   display: grid;
   grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
@@ -100,7 +90,6 @@ html, body {
   background: var(--bg-900);
   border-bottom: 1px solid var(--border-1);
 }
-
 .kpi {
   background: var(--bg-card);
   border: 1px solid var(--border-1);
@@ -108,21 +97,17 @@ html, body {
   padding: 14px 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
-
 .kpi .label {
   font-size: 0.8rem;
   color: var(--text-500);
 }
-
 .kpi .value {
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--accent-1);
 }
 
-/* ============================================================
-   CONTROLS PANEL — modernised
-   ============================================================ */
+/* Controls */
 #controls {
   padding: 20px;
   background: var(--bg-800);
@@ -131,449 +116,177 @@ html, body {
   gap: 18px;
   grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
 }
-
-.control-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.control-group { display: flex; flex-direction: column; gap: 6px; }
+label { font-size: 0.85rem; font-weight: 600; color: var(--text-300); }
+input[type="date"], input[type="text"], select {
+  height: 38px; padding: 6px 12px; background: var(--bg-900);
+  border: 1px solid var(--border-2); color: var(--text-100);
+  border-radius: var(--radius); outline: none;
 }
-
-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-300);
+input[type="date"]:focus, input[type="text"]:focus, select:focus {
+  border-color: var(--accent-1); box-shadow: 0 0 0 2px var(--accent-glow);
 }
-
-input[type="date"],
-input[type="text"],
-select {
-  height: 38px;
-  padding: 6px 12px;
-  background: var(--bg-900);
-  border: 1px solid var(--border-2);
-  color: var(--text-100);
-  border-radius: var(--radius);
-  outline: none;
-}
-
-input[type="date"]:focus,
-input[type="text"]:focus,
-select:focus {
-  border-color: var(--accent-1);
-  box-shadow: 0 0 0 2px var(--accent-glow);
-}
-
-/* Sliders */
-input[type="range"] {
-  accent-color: var(--accent-1);
-}
-
-/* Buttons */
+input[type="range"] { accent-color: var(--accent-1); }
 .btn {
-  padding: 8px 14px;
-  border-radius: var(--radius);
-  background: var(--accent-2);
-  border: 1px solid var(--accent-2);
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
+  padding: 8px 14px; border-radius: var(--radius);
+  background: var(--accent-2); border: 1px solid var(--accent-2);
+  color: white; font-weight: 600; cursor: pointer;
 }
-
 .btn.secondary {
-  background: var(--bg-900);
-  color: var(--text-100);
-  border: 1px solid var(--border-2);
+  background: var(--bg-900); color: var(--text-100); border: 1px solid var(--border-2);
 }
 
-/* ============================================================
-   MAP LAYOUT
-   ============================================================ */
-.map-area {
-  width: 100%;
-  padding: 0 16px;
-  background: var(--bg-900);
-}
-
-.map-row {
-  display: flex;
-  gap: 16px;
-  width: 100%;
-}
-
-#map2d,
-#map3d {
-  flex: 1;
-  height: 650px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-1);
-  overflow: hidden;
+/* Maps */
+.map-area { width: 100%; padding: 0 16px; background: var(--bg-900); }
+.map-row { display: flex; gap: 16px; width: 100%; }
+#map2d, #map3d {
+  flex: 1; height: 650px; border-radius: var(--radius);
+  border: 1px solid var(--border-1); overflow: hidden;
   box-shadow: 0 1px 6px rgba(0,0,0,0.45);
 }
 
-/* Basemap toggle styling */
-.basemap-toggle {
-  position: absolute;
-  z-index: 9999;
-  top: 12px;
-  right: 12px;
-  background: var(--bg-800);
-  border: 1px solid var(--border-1);
-  padding: 6px;
-  border-radius: var(--radius);
-  color: var(--text-100);
-  font-size: 0.85rem;
-}
-
-/* Tooltip */
+/* Tooltip for 3D columns */
 #tooltip3d {
-  position: absolute;
-  z-index: 99999;
-  display: none;
-  background: var(--bg-700);
-  color: var(--text-100);
-  padding: 6px 10px;
-  border: 1px solid var(--accent-1);
-  border-radius: var(--radius);
-  font-size: 0.8rem;
-  pointer-events: none;
+  position: absolute; z-index: 99999; display: none;
+  background: var(--bg-700); color: var(--text-100);
+  padding: 6px 10px; border: 1px solid var(--accent-1);
+  border-radius: var(--radius); font-size: 0.8rem; pointer-events: none;
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
 /* Footer */
 footer {
-  padding: 14px 20px;
-  font-size: 0.85rem;
-  background: var(--bg-800);
-  color: var(--text-500);
-  border-top: 1px solid var(--border-1);
+  padding: 14px 20px; font-size: 0.85rem;
+  background: var(--bg-800); color: var(--text-500); border-top: 1px solid var(--border-1);
 }
 
 /* Time slider label */
-#timeSliderLabel {
-  font-size: 0.8rem;
-  color: var(--text-300);
-  padding-top: 4px;
-}
+#timeSliderLabel { font-size: 0.8rem; color: var(--text-300); padding-top: 4px; }
 </style>
 </head>
 
 <body>
-  <!-- SECTION 2 - BODY STRUCTURE -->
-  <div class='app-header'>
-    <div class='container'>
-      <img src='./STLogo.jpg' class='logo' alt='Supertram Logo'>
+  <!-- Header -->
+  <div class="app-header">
+    <div class="container">
+      <img src="./STLogo.jpg" alt="Supertram Logo" class="logo" onerror="this.style.display='none'">
       <div>
-        <div class='header-title'>SHEQ Heat & 3D Map Dashboard</div>
-        <div class='header-sub'>Sheffield Supertram – Safety, Health, Environment & Quality</div>
+        <div class="header-title">SHEQ Heat & 3D Map Dashboard</div>
+        <div class="header-sub">Sheffield Supertram – Safety, Health, Environment & Quality</div>
       </div>
     </div>
   </div>
 
-  <section class='kpi-bar container'>
-    <div class='kpi'><div class='label'>Incidents (loaded)</div><div class='value' id='kpiLoaded'>0</div></div>
-    <div class='kpi'><div class='label'>Incidents (filtered)</div><div class='value' id='kpiFiltered'>0</div></div>
-    <div class='kpi'><div class='label'>RIDDOR (Yes)</div><div class='value' id='kpiRiddorYes'>0</div></div>
-    <div class='kpi'><div class='label'>Locations (unique)</div><div class='value' id='kpiLocations'>0</div></div>
+  <!-- KPIs -->
+  <section class="kpi-bar container">
+    <div class="kpi"><div class="label">Incidents (loaded)</div><div class="value" id="kpiLoaded">0</div></div>
+    <div class="kpi"><div class="label">Incidents (filtered)</div><div class="value" id="kpiFiltered">0</div></div>
+    <div class="kpi"><div class="label">RIDDOR (Yes)</div><div class="value" id="kpiRiddorYes">0</div></div>
+    <div class="kpi"><div class="label">Locations (unique)</div><div class="value" id="kpiLocations">0</div></div>
   </section>
 
-  <div id='controls' class='container'>
-    <div class='control-group'>
-      <label>Start Date</label>
-      <input type='date' id='startDate'>
+  <!-- Controls -->
+  <div id="controls" class="container">
+    <div class="control-group">
+      <label>Start Date</label><input type="date" id="startDate">
     </div>
-    <div class='control-group'>
-      <label>End Date</label>
-      <input type='date' id='endDate'>
+    <div class="control-group">
+      <label>End Date</label><input type="date" id="endDate">
     </div>
-    <div class='control-group' style='grid-column:1 / -1;'>
+
+    <div class="control-group" style="grid-column:1 / -1;">
       <label>Time Slider</label>
-      <input type='range' id='timeSlider' min='0' max='100' value='100' class='time-slider'>
-      <div id='timeSliderLabel'>Showing incidents up to: All dates</div>
+      <input type="range" id="timeSlider" min="0" max="100" value="100" class="time-slider">
+      <div id="timeSliderLabel">Showing incidents up to: All dates</div>
     </div>
-    <div class='control-group'>
+
+    <div class="control-group">
       <label>Incident Type</label>
-      <select id='incidentType'><option value=''>All</option></select>
+      <select id="incidentType"><option value="">All</option></select>
     </div>
-    <div class='control-group'>
-      <label>Location</label>
-      <input type='text' id='location'>
+
+    <div class="control-group">
+      <label>Location</label><input type="text" id="location">
     </div>
-    <div class='control-group'>
+
+    <div class="control-group">
       <label>Direction</label>
-      <select id='direction'><option value=''>All</option><option>Inbound</option><option>Outbound</option></select>
+      <select id="direction">
+        <option value="">All</option>
+        <option>Inbound</option>
+        <option>Outbound</option>
+        <option>Wrong Direction</option>
+      </select>
     </div>
-    <div class='control-group'>
+
+    <div class="control-group">
       <label>RIDDOR/SMIS</label>
-      <select id='riddor'><option value=''>All</option><option>Yes</option><option>No</option></select>
+      <select id="riddor"><option value="">All</option><option>Yes</option><option>No</option></select>
     </div>
-    <div class='control-group'>
+
+    <div class="control-group">
       <label>Heat Options</label>
-      <div class='btn-row'>
-        <span>Radius</span><input type='range' id='radius' min='5' max='50' value='25'>
-        <span>Intensity</span><input type='range' id='intensity' min='0.2' max='3' step='0.1' value='1.5'>
-        <span>Opacity</span><input type='range' id='opacity' min='0.1' max='1' step='0.05' value='0.7'>
+      <div class="btn-row">
+        <span>Radius</span><input type="range" id="radius" min="5" max="50" value="25">
+        <span>Intensity</span><input type="range" id="intensity" min="0.2" max="3" step="0.1" value="1.5">
+        <span>Opacity</span><input type="range" id="opacity" min="0.1" max="1" step="0.05" value="0.7">
       </div>
     </div>
-    <div class='control-group'>
+
+    <div class="control-group">
       <label>&nbsp;</label>
-      <div class='btn-row'>
-        <button id='resetBtn' class='btn secondary'>Reset</button>
-        <button id='fitBtn' class='btn'>Fit to Data</button>
+      <div class="btn-row">
+        <button id="resetBtn" class="btn secondary">Reset</button>
+        <button id="fitBtn" class="btn">Fit to Data</button>
       </div>
     </div>
   </div>
 
-  <div class='map-area'>
-    <div class='map-row'>
-      <div id='map2d'></div>
-      <div id='map3d'>
-        <div class='basemap-toggle'>
-          <select id='basemapSelect'>
-            <option value='street'>Street</option>
-            <option value='satellite'>Satellite</option>
-            <option value='terrain'>Terrain</option>
-          </select>
-        </div>
-      </div>
+  <!-- Maps -->
+  <div class="map-area">
+    <div class="map-row">
+      <div id="map2d"></div>
+      <div id="map3d"></div>
     </div>
   </div>
 
-  <div id='tooltip3d'></div>
+  <div id="tooltip3d"></div>
 
-  <footer class='container'>
-    © SYFTL Supertram • <span id='refreshedAt'>Data refreshed: —</span>
+  <footer class="container">
+    © SYFTL Supertram • <span id="refreshedAt">Data refreshed: —</span>
   </footer>
 
-  <!-- SECTION 3 – 2D HEATMAP + FILTER ENGINE -->
+  <!-- ===========================
+       FULL APP SCRIPT
+       =========================== -->
   <script>
-  // Global vars referenced by both maps
-  let allPoints = [];
-  let minTime = 0, maxTime = 0;
+  // ---- Config & Globals ----
+  const API_KEY = 'ryV7YzWDB5SrLWGznrXZ';
   const GEOJSON_URL = './incidents.geojson';
 
-  // ------------------------------
-  // LOAD INCIDENTS
-  // ------------------------------
-  async function loadIncidents() {
-    const res = await fetch(GEOJSON_URL + '?v=' + Date.now());
-    const data = await res.json();
+  let map2d, map3d, columnLayer, heatLayer;
+  let allPoints = [];
+  let minTime = 0, maxTime = 0;
 
-    allPoints = data.features
-      .filter(f => f.geometry && f.geometry.type === 'Point')
-      .map(f => {
-        const [lon, lat] = f.geometry.coordinates;
-        const p = f.properties || {};
-        return {
-          lat,
-          lon,
-          props: p,
-          weight: (String(p.RIDDOR_SMIS || '').trim().toLowerCase() === 'yes') ? 1.5 : 0.6,
-          time: p.DateTime ? new Date(p.DateTime).getTime() : null
-        };
-      });
-  }
-
-  // ------------------------------
-  // INCIDENT TYPE DROPDOWN POPULATION
-  // ------------------------------
-  function populateIncidentTypes(data) {
-    const select = document.getElementById('incidentType');
-    const set = new Set(data.map(p => String(p.props.Incident || '')).filter(Boolean));
-
-    set.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t;
-      opt.textContent = t;
-      select.appendChild(opt);
-    });
-  }
-
-  // ------------------------------
-  // COMPUTE GLOBAL TIME RANGE
-  // ------------------------------
-  function computeTimeRange(data) {
-    const times = data.map(p => p.time).filter(t => t !== null);
-    if (times.length) {
-      minTime = Math.min(...times);
-      maxTime = Math.max(...times);
-    }
-  }
-
-  // ------------------------------
-  // HEATMAP BUILDER
-  // ------------------------------
-  let heatLayer;
-
-  function buildHeat(points) {
-    if (heatLayer) map2d.removeLayer(heatLayer);
-
-    const r = +document.getElementById('radius').value;
-    const inten = +document.getElementById('intensity').value;
-    const op = +document.getElementById('opacity').value;
-
-    const heatData = points.map(p => [p.lat, p.lon, p.weight * inten]);
-
-    heatLayer = L.heatLayer(heatData, { radius: r, blur: 20, maxZoom: 17 }).addTo(map2d);
-    heatLayer.setOptions({ opacity: op });
-  }
-
-  // ------------------------------
-  // INCIDENT TYPE GREY-OUT
-  // ------------------------------
-  function updateIncidentTypeDropdown(possibleTypes) {
-    const select = document.getElementById('incidentType');
-    const opts = select.querySelectorAll('option');
-
-    opts.forEach(opt => {
-      const val = opt.value.trim().toLowerCase();
-      if (val === '') return;
-
-      if (!possibleTypes.has(val)) {
-        opt.disabled = true;
-        opt.style.color = '#666';
-      } else {
-        opt.disabled = false;
-        opt.style.color = '';
-      }
-    });
-  }
-
-  // ------------------------------
-  // KPI UPDATE
-  // ------------------------------
-  function updateKpis(all, filtered) {
-    document.getElementById('kpiLoaded').textContent = all.length;
-    document.getElementById('kpiFiltered').textContent = filtered.length;
-
-    const riddorYes = filtered.filter(p => String(p.props.RIDDOR_SMIS || '').trim().toLowerCase() === 'yes').length;
-    document.getElementById('kpiRiddorYes').textContent = riddorYes;
-
-    const locs = new Set(filtered.map(p => p.props.Location).filter(Boolean));
-    document.getElementById('kpiLocations').textContent = locs.size;
-  }
-
-  // ------------------------------
-  // FILTERING + TIME SLIDER
-  // ------------------------------
-  function filterPoints() {
-    const s = document.getElementById('startDate').value;
-    const e = document.getElementById('endDate').value;
-    const t = document.getElementById('incidentType').value.toLowerCase();
-    const loc = document.getElementById('location').value.toLowerCase();
-    const dir = document.getElementById('direction').value.toLowerCase();
-    const rid = document.getElementById('riddor').value.toLowerCase();
-
-    const sliderPercent = +document.getElementById('timeSlider').value;
-    const cutoff = minTime + (sliderPercent / 100) * (maxTime - minTime);
-
-    // Update label
-    if (maxTime > 0) {
-      const d = new Date(cutoff);
-      document.getElementById('timeSliderLabel').textContent =
-        "Showing incidents up to: " + d.toLocaleDateString();
-    }
-
-    // Pass 1: build possible incident types
-    const possibleTypes = new Set();
-    allPoints.forEach(p => {
-      const pr = p.props;
-
-      if (s && pr.DateTime && new Date(pr.DateTime) < new Date(s)) return;
-      if (e && pr.DateTime && new Date(pr.DateTime) > new Date(e)) return;
-      if (p.time && p.time > cutoff) return;
-
-      if (loc && !String(pr.Location || '').toLowerCase().includes(loc)) return;
-
-      if (dir && String(pr.Direction || '').trim().toLowerCase() !== dir) return;
-      if (rid && String(pr.RIDDOR_SMIS || '').trim().toLowerCase() !== rid) return;
-
-      possibleTypes.add(String(pr.Incident || '').trim().toLowerCase());
-    });
-
-    updateIncidentTypeDropdown(possibleTypes);
-
-    const filtered = allPoints.filter(p => {
-      const pr = p.props;
-
-      if (s && pr.DateTime && new Date(pr.DateTime) < new Date(s)) return false;
-      if (e && pr.DateTime && new Date(pr.DateTime) > new Date(e)) return false;
-      if (p.time && p.time > cutoff) return false;
-
-      if (t && String(pr.Incident || '').trim().toLowerCase() !== t) return false;
-      if (loc && !String(pr.Location || '').toLowerCase().includes(loc)) return false;
-      if (dir && String(pr.Direction || '').trim().toLowerCase() !== dir) return false;
-      if (rid && String(pr.RIDDOR_SMIS || '').trim().toLowerCase() !== rid) return false;
-
-      return true;
-    });
-
-    buildHeat(filtered);
-    update3D(filtered);
-    updateKpis(allPoints, filtered);
-    return filtered;
-  }
-
-  // ------------------------------
-  // RESET + FIT BUTTONS
-  // ------------------------------
-  function attachUI() {
-    [
-      'radius','intensity','opacity','startDate','endDate','incidentType',
-      'location','direction','riddor','timeSlider'
-    ].forEach(id => document.getElementById(id).addEventListener('input', filterPoints));
-
-    document.getElementById('resetBtn').onclick = () => {
-      ['startDate','endDate','location','direction','riddor','incidentType']
-        .forEach(id => document.getElementById(id).value = '');
-      document.getElementById('timeSlider').value = 100;
-      filterPoints();
-    };
-
-    document.getElementById('fitBtn').onclick = () => {
-      const pts = filterPoints();
-      if (!pts.length) return;
-      const bounds = L.latLngBounds(pts.map(p => [p.lat, p.lon]));
-      map2d.fitBounds(bounds.pad(0.1));
-    };
-  }
-  </script>
-
-  <!-- SECTION 4 – 3D MAPLIBRE + DECK.GL COLUMNS + BASEMAP TOGGLES -->
-  <script>
-  // API Key for MapTiler styles/terrain (replace if needed)
-  const API_KEY = 'ryV7YzWDB5SrLWGznrXZ';
-
-  // Map instances
-  let map2d; // defined globally for Section 3
-  let map3d; // MapLibre instance
-  let columnLayer; // deck.gl layer reference
-
-  // ------------------------------
-  // INIT 2D
-  // ------------------------------
-  function init2D() {
+  // ---- 2D Map (Leaflet) ----
+  function init2D(){
     map2d = L.map('map2d');
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map2d);
     map2d.setView([53.382, -1.463], 12);
   }
 
-  // ------------------------------
-  // INIT 3D + BASEMAP MODE
-  // ------------------------------
-  function init3D(mode = 'street') {
-    const styleURL = getStyleURL(mode);
+  // ---- Satellite-only 3D Map (MapLibre) ----
+  function getStyleURL(){
+    // Satellite Hybrid ONLY
+    return `https://api.maptiler.com/maps/hybrid/style.json?key=${API_KEY}`;
+  }
+
+  function init3D(){
+    const styleURL = getStyleURL();
 
     if (map3d) {
       map3d.setStyle(styleURL);
-      // Re-add terrain and sky after style change
-      map3d.once('styledata', () => {
-        addTerrainAndSky();
-        // Reattach columns on style change
-        if (columnLayer) {
-          try { map3d.removeLayer('columns'); } catch(e){}
-          map3d.addLayer(columnLayer);
-        }
-      });
+      map3d.once('styledata', () => { addSkyOnly(); if (columnLayer) { try { map3d.removeLayer('columns'); } catch(e){} map3d.addLayer(columnLayer); } });
       return;
     }
 
@@ -586,22 +299,13 @@ footer {
       bearing: -20
     });
 
-    // Attribution default (legal)
     map3d.addControl(new maplibregl.AttributionControl({ compact: true }));
 
-    map3d.on('load', () => {
-      addTerrainAndSky();
-    });
+    map3d.on('load', () => { addSkyOnly(); });
   }
 
-  function getStyleURL(mode) {
-    if (mode === 'satellite') return `https://api.maptiler.com/maps/hybrid/style.json?key=${API_KEY}`;
-    if (mode === 'terrain')   return `https://api.maptiler.com/maps/terrain/style.json?key=${API_KEY}`;
-    return `https://api.maptiler.com/maps/streets/style.json?key=${API_KEY}`; // street default
-  }
-
-
-    // Sky layer
+  function addSkyOnly(){
+    // Flat satellite (no terrain), keep a sky gradient for style
     try {
       map3d.setSky({
         type: 'gradient',
@@ -610,39 +314,170 @@ footer {
           [1.0, 'rgba(255,255,255,0.0)']
         ]
       });
-    } catch(e) { /* older MapLibre may not support setSky */ }
+    } catch(e) {}
   }
 
-  // ------------------------------
-  // 3D COLUMNS – Adaptive scaling (Option C)
-  // ------------------------------
+  // ---- Data Loading ----
+  async function loadIncidents(){
+    const res = await fetch(GEOJSON_URL + '?v=' + Date.now());
+    const data = await res.json();
+    allPoints = (data.features || [])
+      .filter(f => f.geometry && f.geometry.type === 'Point')
+      .map(f => {
+        const [lon, lat] = f.geometry.coordinates;
+        const p = f.properties || {};
+        return {
+          lat, lon, props: p,
+          weight: (String(p.RIDDOR_SMIS || '').trim().toLowerCase() === 'yes') ? 1.5 : 0.6,
+          time: p.DateTime ? new Date(p.DateTime).getTime() : null
+        };
+      });
+  }
+
+  function populateIncidentTypes(data){
+    const select = document.getElementById('incidentType');
+    const set = new Set(data.map(p => String(p.props.Incident || '')).filter(Boolean));
+    set.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      select.appendChild(opt);
+    });
+  }
+
+  function computeTimeRange(data){
+    const times = data.map(p => p.time).filter(t => t !== null);
+    if (times.length){ minTime = Math.min(...times); maxTime = Math.max(...times); }
+  }
+
+  // ---- Heatmap ----
+  function buildHeat(points){
+    if (heatLayer) map2d.removeLayer(heatLayer);
+    const r = +document.getElementById('radius').value;
+    const inten = +document.getElementById('intensity').value;
+    const op = +document.getElementById('opacity').value;
+    const heatData = points.map(p => [p.lat, p.lon, p.weight * inten]);
+    heatLayer = L.heatLayer(heatData, { radius: r, blur: 20, maxZoom: 17 }).addTo(map2d);
+    heatLayer.setOptions({ opacity: op });
+  }
+
+  // ---- Incident Type Grey-out ----
+  function updateIncidentTypeDropdown(possibleTypes){
+    const select = document.getElementById('incidentType');
+    const opts = select.querySelectorAll('option');
+    opts.forEach(opt => {
+      const val = opt.value.trim().toLowerCase();
+      if (val === '') return;
+      if (!possibleTypes.has(val)){ opt.disabled = true; opt.style.color = '#666'; }
+      else { opt.disabled = false; opt.style.color = ''; }
+    });
+  }
+
+  // ---- KPIs ----
+  function updateKpis(all, filtered){
+    document.getElementById('kpiLoaded').textContent = all.length;
+    document.getElementById('kpiFiltered').textContent = filtered.length;
+    const riddorYes = filtered.filter(p => String(p.props.RIDDOR_SMIS || '').trim().toLowerCase() === 'yes').length;
+    document.getElementById('kpiRiddorYes').textContent = riddorYes;
+    const locs = new Set(filtered.map(p => p.props.Location).filter(Boolean));
+    document.getElementById('kpiLocations').textContent = locs.size;
+  }
+
+  // ---- Filtering + Time Slider ----
+  function filterPoints(){
+    const s = document.getElementById('startDate').value;
+    const e = document.getElementById('endDate').value;
+    const t = document.getElementById('incidentType').value.toLowerCase();
+    const loc = document.getElementById('location').value.toLowerCase();
+    const dir = document.getElementById('direction').value.toLowerCase();
+    const rid = document.getElementById('riddor').value.toLowerCase();
+
+    const sliderPercent = +document.getElementById('timeSlider').value;
+    const cutoff = minTime + (sliderPercent / 100) * (maxTime - minTime);
+
+    if (maxTime > 0){
+      const d = new Date(cutoff);
+      document.getElementById('timeSliderLabel').textContent =
+        "Showing incidents up to: " + d.toLocaleDateString();
+    }
+
+    // Pass 1: Possible incident types (without applying incident-type filter yet)
+    const possibleTypes = new Set();
+    allPoints.forEach(p => {
+      const pr = p.props;
+      if (s && pr.DateTime && new Date(pr.DateTime) < new Date(s)) return;
+      if (e && pr.DateTime && new Date(pr.DateTime) > new Date(e)) return;
+      if (p.time && p.time > cutoff) return;
+      if (loc && !String(pr.Location || '').toLowerCase().includes(loc)) return;
+      if (dir && String(pr.Direction || '').trim().toLowerCase() !== dir) return;
+      if (rid && String(pr.RIDDOR_SMIS || '').trim().toLowerCase() !== rid) return;
+      possibleTypes.add(String(pr.Incident || '').trim().toLowerCase());
+    });
+    updateIncidentTypeDropdown(possibleTypes);
+
+    // Final filtered set (including incident type if selected)
+    const filtered = allPoints.filter(p => {
+      const pr = p.props;
+      if (s && pr.DateTime && new Date(pr.DateTime) < new Date(s)) return false;
+      if (e && pr.DateTime && new Date(pr.DateTime) > new Date(e)) return false;
+      if (p.time && p.time > cutoff) return false;
+      if (t && String(pr.Incident || '').trim().toLowerCase() !== t) return false;
+      if (loc && !String(pr.Location || '').toLowerCase().includes(loc)) return false;
+      if (dir && String(pr.Direction || '').trim().toLowerCase() !== dir) return false;
+      if (rid && String(pr.RIDDOR_SMIS || '').trim().toLowerCase() !== rid) return false;
+      return true;
+    });
+
+    buildHeat(filtered);
+    update3D(filtered);
+    updateKpis(allPoints, filtered);
+    return filtered;
+  }
+
+  // ---- UI wiring ----
+  function attachUI(){
+    ['radius','intensity','opacity','startDate','endDate','incidentType','location','direction','riddor','timeSlider']
+      .forEach(id => document.getElementById(id).addEventListener('input', filterPoints));
+
+    document.getElementById('resetBtn').onclick = () => {
+      ['startDate','endDate','location','direction','riddor','incidentType'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('timeSlider').value = 100;
+      filterPoints();
+    };
+
+    document.getElementById('fitBtn').onclick = () => {
+      const pts = filterPoints();
+      if (!pts.length) return;
+      const bounds = L.latLngBounds(pts.map(p => [p.lat, p.lon]));
+      map2d.fitBounds(bounds.pad(0.1));
+    };
+
+    window.addEventListener('resize', () => { if (map2d) setTimeout(() => map2d.invalidateSize(), 60); });
+  }
+
+  // ---- 3D Columns (deck.gl) ----
   function aggregateColumns(points){
     const m = new Map();
     for (const p of points){
       const k = `${p.lon},${p.lat}`;
       if (!m.has(k)) m.set(k, { lon: p.lon, lat: p.lat, count: 0, weighted: 0 });
       const o = m.get(k);
-      o.count++;
-      o.weighted += p.weight;
+      o.count++; o.weighted += p.weight;
     }
     return [...m.values()];
   }
 
-
-function colorFor(vNorm){
-  // Solid red columns
-  return [255, 0, 0, 220];  
-}
-
+  function colorFor(/* vNorm */){
+    // Solid RED columns (Option A)
+    return [255, 0, 0, 220];
+  }
 
   function update3D(points){
     if (!map3d) return;
     const agg = aggregateColumns(points);
 
-    // Adaptive scaling: find max
     let maxW = 0;
     for (const a of agg) if (a.weighted > maxW) maxW = a.weighted;
-    const elevMax = 260; // target visual height (meters)
+    const elevMax = 260; // meters
 
     const tip = document.getElementById('tooltip3d');
 
@@ -662,8 +497,8 @@ function colorFor(vNorm){
         if (info.object) {
           tip.style.left = info.x + 'px';
           tip.style.top = info.y + 'px';
-          tip.innerHTML = `<strong>Incidents:</strong> ${info.object.count}<br>` +
-                          `<strong>Weighted:</strong> ${info.object.weighted.toFixed(1)}`;
+          tip.innerHTML = `<strong>Incidents:</strong> ${info.object.count}<br>
+                           <strong>Weighted:</strong> ${info.object.weighted.toFixed(1)}`;
           tip.style.display = 'block';
         } else {
           tip.style.display = 'none';
@@ -676,12 +511,10 @@ function colorFor(vNorm){
     map3d.addLayer(layer);
   }
 
-  // ------------------------------
-  // BOOTSTRAP ALL
-  // ------------------------------
+  // ---- Bootstrap ----
   function init(){
     init2D();
-    init3D('satellite');
+    init3D(); // satellite-only
     loadIncidents().then(() => {
       populateIncidentTypes(allPoints);
       computeTimeRange(allPoints);
@@ -689,25 +522,11 @@ function colorFor(vNorm){
       update3D(allPoints);
       updateKpis(allPoints, allPoints);
       attachUI();
-
       document.getElementById('refreshedAt').textContent =
         'Data refreshed: ' + new Date().toLocaleString();
 
-      // Basemap toggle
-      const baseSel = document.getElementById('basemapSelect');
-      baseSel.addEventListener('change', e => {
-        init3D(e.target.value);
-        // Repaint columns to ensure sync with new style
-        update3D(filterPoints());
-      });
-
-      // Fit button relies on filterPoints()
+      // First filter run (to sync date label etc.)
       filterPoints();
-
-      // Resize handling for Leaflet
-      window.addEventListener('resize', () => {
-        if (map2d) setTimeout(() => map2d.invalidateSize(), 60);
-      });
     });
   }
   </script>
